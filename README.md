@@ -33,13 +33,13 @@ If you already know modding well, here's a short explanation:
 		</animation>		
 </simpleIC>
 
--> outsideInteractionTrigger = playerTrigger in which the player can open doors and other outside-stuff from the outside
--> animationName = name of the animation for the door
--> animationSpeed = speed of the animation (obvious) 
--> shared animation = not added yet
--> soundVolumeIncreasePercentage = by how much will the sound-volume increase if that door is opened. Values will be added together for more than one door, max is outdoorSoundVolume 
--> insideTrigger and outsideTrigger = "Triggerpoints" e.g. transformGroups that mark the spot where the IC component can be clicked
--> triggerPoint = index / i3dMapping name for the transformGroup
--> triggerPointSize = size/radius around the triggerPoint where it still registeres as being clicked
+- outsideInteractionTrigger = playerTrigger in which the player can open doors and other outside-stuff from the outside
+- animationName = name of the animation for the door
+- animationSpeed = speed of the animation (obvious) 
+- shared animation = not added yet
+- soundVolumeIncreasePercentage = by how much will the sound-volume increase if that door is opened. Values will be added together for more than one door, max is outdoorSoundVolume 
+- insideTrigger and outsideTrigger = "Triggerpoints" e.g. transformGroups that mark the spot where the IC component can be clicked
+- triggerPoint = index / i3dMapping name for the transformGroup
+- triggerPointSize = size/radius around the triggerPoint where it still registeres as being clicked
 
 
