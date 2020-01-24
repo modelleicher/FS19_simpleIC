@@ -25,13 +25,7 @@ Now for the bad parts
 - I will create videos explaining the process of adding simpleIC to your vehicle. 
 
 If you already know modding well, here's a short explanation:
-
-<simpleIC outsideInteractionTrigger="0>0|12|3|12" >
-		<animation animationName="doorRight" animationSpeed="1" sharedAnimation="false" soundVolumeIncreasePercentage="0.5" >
-			<insideTrigger triggerPoint="0>0|12|3|11|6" triggerPointSize="0.04" />
-			<outsideTrigger triggerPoint="0>0|12|3|11|7" triggerPointSize="0.04" />
-		</animation>		
-</simpleIC>
+(look at the linked Deutz Agrostar above to see the full XML lines)
 
 - outsideInteractionTrigger = playerTrigger in which the player can open doors and other outside-stuff from the outside
 - animationName = name of the animation for the door
