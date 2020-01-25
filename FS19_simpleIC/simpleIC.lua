@@ -15,6 +15,11 @@
 -- DONE -> save animations ? 
 -- DONE -> merge 2 scripts.. -.-
 
+-- Changelog
+-- ## V 0.9.1.3
+-- multiplayer fix
+-- added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
+
 simpleIC = {};
 
 function simpleIC.prerequisitesPresent(specializations)
@@ -33,6 +38,8 @@ function simpleIC.registerEventListeners(vehicleType)
 	SpecializationUtil.registerEventListener(vehicleType, "onDelete", simpleIC);	
 	SpecializationUtil.registerEventListener(vehicleType, "onPostLoad", simpleIC);
 	SpecializationUtil.registerEventListener(vehicleType, "saveToXMLFile", simpleIC);	
+	SpecializationUtil.registerEventListener(vehicleType, "onReadStream", simpleIC);	
+	SpecializationUtil.registerEventListener(vehicleType, "onWriteStream", simpleIC);		
 end;
 
 
@@ -115,10 +122,21 @@ function simpleIC:onLoad(savegame)
 		icFunction.inTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerPointSize"), 0.04);
 		icFunction.inTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerDistance"), 1);
 		
+		if icFunction.inTP.triggerPoint == nil then
+			icFunction.inTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_ON"), self.i3dMappings);
+			icFunction.inTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_OFF"), self.i3dMappings);
+		end;
+		
+		
 		icFunction.outTP = {};
 		icFunction.outTP.triggerPoint = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint"), self.i3dMappings);
 		icFunction.outTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerPointSize"), 0.04);
 		icFunction.outTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerDistance"), 1);
+
+		if icFunction.outTP.triggerPoint == nil then
+			icFunction.outTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_ON"), self.i3dMappings);
+			icFunction.outTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_OFF"), self.i3dMappings);
+		end;
 		
 
 		table.insert(spec.icFunctions, icFunction);
@@ -213,6 +231,29 @@ function simpleIC:saveToXMLFile(xmlFile, key)
 	end;
 end;
 
+function simpleIC:onReadStream(streamId, connection)
+    local spec = self.simpleIC
+	if connection:getIsServer() then
+		for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+			if icFunction.animation ~= nil then
+				streamReadBool(streamId, icFunction.animation.currentState)
+			end;	
+		end;	
+	end;
+end
+
+function simpleIC:onWriteStream(streamId, connection)
+	local spec = self.simpleIC;
+	
+	if not connection:getIsServer() then
+		for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+			if icFunction.animation ~= nil then
+				streamWriteBool(streamId, icFunction.animation.currentState)
+			end;
+		end;
+	end;
+end
+
 function simpleIC:onDelete()
 	local spec = self.spec_simpleIC;
 	if spec.outsideInteractionTrigger ~= nil then
@@ -230,6 +271,16 @@ function simpleIC:INTERACT(actionName, inputValue)
 					self:setICAnimation(not icFunction.animation.currentState, i);
 				end;
 			end;
+			if icFunction.canBeTriggered_ON then
+				if icFunction.animation ~= nil then
+					self:setICAnimation(true, i);
+				end;
+			end;			
+			if icFunction.canBeTriggered_OFF then
+				if icFunction.animation ~= nil then
+					self:setICAnimation(false, i);
+				end;
+			end;			
 			i = i+1;
 		end;	
 	end;
@@ -319,6 +370,8 @@ end;
 function simpleIC:resetCanBeTriggered()
 	for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do -- reset all the IC-Functions so they can't be triggered 
 		icFunction.canBeTriggered = false;
+		icFunction.canBeTriggered_ON = false;
+		icFunction.canBeTriggered_OFF = false;
 	end;
 end;
 
@@ -450,54 +503,77 @@ function simpleIC:checkInteraction()
 					tp = icFunction.outTP;
 				end;
 				
-				if tp.triggerPoint ~= nil then
+
+
+				if tp.triggerPoint ~= nil or tp.triggerPoint_ON ~= nil or tp.triggerPoint_OFF ~= nil then
 					
-					
-					-- get world translation of our trigger point, then project it to the screen 
-					local wX, wY, wZ = getWorldTranslation(tp.triggerPoint);
-					local cameraNode = 0;
-					if spec.playerInOutsideInteractionTrigger then
-						cameraNode = g_currentMission.player.cameraNode
-					else
-						cameraNode = self:getActiveCamera().cameraNode
+					local triggerPoint = {};
+					triggerPoint[1] = tp.triggerPoint;
+
+					if tp.triggerPoint_OFF ~= nil and tp.triggerPoint_ON ~= nil then -- multiple trigger points 
+						triggerPoint[2] = tp.triggerPoint_ON;
+						triggerPoint[3] = tp.triggerPoint_OFF;
 					end;
-					local cX, cY, cZ = getWorldTranslation(cameraNode);
-					local x, y, z = project(wX, wY, wZ);
-					
-					local dist = MathUtil.vector3Length(wX-cX, wY-cY, wZ-cZ); 
-					
 
-					if x > 0 and y > 0 and z > 0 then
-					
-						-- the higher the number the smaller the text should be to keep it the same size in 3d space 
-						-- base size is 0.025 
-						-- if the number is higher than 1, make smaller
-						-- if the number is smaller than 1, make bigger
-			
-						local size = 0.028 / dist;
-							
-						-- default posX and posY is 0.5 e.g. middle of the screen for selection 
-						local posX, posY, posZ = 0.5, 0.5, 0.5;
-						
-						-- if we have MOUSE_Mode enabled, use mouse position instead 
-						if spec.icTurnedOn_outside then
-							posX, posY, posZ = g_lastMousePosX, g_lastMousePosY, 0;				
+					-- set it to false by default 
+					icFunction.canBeTriggered = false;
+					icFunction.canBeTriggered_ON = false;
+					icFunction.canBeTriggered_OFF = false;					
+
+					for index , triggerPoint in pairs(triggerPoint) do 
+						-- get world translation of our trigger point, then project it to the screen 
+
+
+						local wX, wY, wZ = getWorldTranslation(triggerPoint);
+						local cameraNode = 0;
+						if spec.playerInOutsideInteractionTrigger then
+							cameraNode = g_currentMission.player.cameraNode
+						else
+							cameraNode = self:getActiveCamera().cameraNode
 						end;
+						local cX, cY, cZ = getWorldTranslation(cameraNode);
+						local x, y, z = project(wX, wY, wZ);
+						
+						local dist = MathUtil.vector3Length(wX-cX, wY-cY, wZ-cZ); 
+						
 
-						-- set it to false by default 
-						icFunction.canBeTriggered = false;
-						-- check if our position is within the position of the triggerRadius
-						if posX < (x + tp.triggerPointRadius) and posX > (x - tp.triggerPointRadius) then
-							if posY < (y + tp.triggerPointRadius) and posY > (y - tp.triggerPointRadius) then
-								if dist < 1.8 or spec.icTurnedOn_outside then
-									-- can be clicked 
-									icFunction.canBeTriggered = true;
-									self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 0, 0)
-								end;
+						if x > 0 and y > 0 and z > 0 then
+						
+							-- the higher the number the smaller the text should be to keep it the same size in 3d space 
+							-- base size is 0.025 
+							-- if the number is higher than 1, make smaller
+							-- if the number is smaller than 1, make bigger
+				
+							local size = 0.028 / dist;
+								
+							-- default posX and posY is 0.5 e.g. middle of the screen for selection 
+							local posX, posY, posZ = 0.5, 0.5, 0.5;
+							
+							-- if we have MOUSE_Mode enabled, use mouse position instead 
+							if spec.icTurnedOn_outside then
+								posX, posY, posZ = g_lastMousePosX, g_lastMousePosY, 0;				
 							end;
-						end;	
-						if not icFunction.canBeTriggered then
-							self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 1, 1)
+
+							
+							-- check if our position is within the position of the triggerRadius
+							if posX < (x + tp.triggerPointRadius) and posX > (x - tp.triggerPointRadius) then
+								if posY < (y + tp.triggerPointRadius) and posY > (y - tp.triggerPointRadius) then
+									if dist < 1.8 or spec.icTurnedOn_outside then
+										-- can be clicked 
+										if index == 1 then -- toggle mark 
+											icFunction.canBeTriggered = true;
+										elseif index == 2 then -- on mark 
+											icFunction.canBeTriggered_ON = true;
+										elseif index == 3 then -- off mark 
+											icFunction.canBeTriggered_OFF = true;
+										end;
+										self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 0, 0)
+									end;
+								end;
+							end;	
+							if (index == 1 and not icFunction.canBeTriggered) or (index == 2 and not icFunction.canBeTriggered_ON) or (index == 3 and not icFunction.canBeTriggered_OFF) then
+								self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 1, 1)
+							end;
 						end;
 					end;
 				end;
@@ -529,32 +605,35 @@ function setICAnimationEvent:emptyNew()
     self.className="setICAnimationEvent";
     return self;
 end;
-function setICAnimationEvent:new(vehicle, state) 
+function setICAnimationEvent:new(vehicle, wantedState, animationIndex) 
     self.vehicle = vehicle;
-    self.state = state;
+	self.wantedState = wantedState;
+	self.animationIndex = animationIndex;
     return self;
 end;
 function setICAnimationEvent:readStream(streamId, connection)  
     self.vehicle = NetworkUtil.readNodeObject(streamId); 
-    self.state = streamReadBool(streamId); 
+	self.wantedState = streamReadBool(streamId); 
+	self.animationIndex = streamReadUIntN(streamId, 6);
     self:run(connection);  
 end;
 function setICAnimationEvent:writeStream(streamId, connection)   
 	NetworkUtil.writeNodeObject(streamId, self.vehicle);   
-    streamWriteBool(streamId, self.state );   
+	streamWriteBool(streamId, self.wantedState ); 
+	streamWriteUIntN(streamId, self.animationIndex, 6); 
 end;
 function setICAnimationEvent:run(connection) 
-    self.vehicle:setICAnimation(self.state, true);
+    self.vehicle:setICAnimation(self.wantedState, self.animationIndex, true);
     if not connection:getIsServer() then  
-        g_server:broadcastEvent(setICAnimationEvent:new(self.vehicle, self.state), nil, connection, self.object);
+        g_server:broadcastEvent(setICAnimationEvent:new(self.vehicle, self.wantedState, self.animationIndex), nil, connection, self.object);
     end;
 end;
-function setICAnimationEvent.sendEvent(vehicle, state, noEventSend) 
+function setICAnimationEvent.sendEvent(vehicle, wantedState, animationIndex, noEventSend) 
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then   
-            g_server:broadcastEvent(setICAnimationEvent:new(vehicle, state), nil, nil, vehicle);
+            g_server:broadcastEvent(setICAnimationEvent:new(vehicle, wantedState, animationIndex), nil, nil, vehicle);
         else 
-            g_client:getServerConnection():sendEvent(setICAnimationEvent:new(vehicle, state));
+            g_client:getServerConnection():sendEvent(setICAnimationEvent:new(vehicle, wantedState, animationIndex));
         end;
     end;
 end;
