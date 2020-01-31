@@ -1,25 +1,21 @@
 -- by modelleicher
 -- 13.04.2019
 
+-- Script for Interactive Control. Released on Github January 2020.
 
--- simpleIC 
--- Bugs I need to fix:
 
--- DONE -> deactivate the "selectednes" of IC objects when IC is turned off, the vehicle is left or the camera perspective changes 
--- DONE -> get the darn buttons/input conflicts fixed 
--- add sharedAnimation stuff back in 
--- DONE -> fix whatever is wrong with the event 
--- DONE -> add deletion of trigger 
--- DONE -> track on-state for indoorCamera when switching to outdoor camera and automatically set it  
--- DONE -> save IC state 
--- DONE -> save animations ? 
--- DONE -> merge 2 scripts.. -.-
+--[[
 
--- Changelog
--- ## V 0.9.1.3
--- multiplayer fix
--- added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
+Changelog
+## V 0.9.1.4
+- fixed IC active on all vehicles bug (now only active if vehicle actually has IC functions)
+- fixed bug Error: Running LUA method 'update' simpleIC.lua:292: attempt to index a nil value
+- added default keymapping
+## V 0.9.1.3
+- multiplayer fix
+- added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
 
+]]
 simpleIC = {};
 
 function simpleIC.prerequisitesPresent(specializations)
@@ -48,7 +44,7 @@ function simpleIC.onRegisterActionEvents(self, isActiveForInput)
 	spec.actionEvents = {}; 
 	self:clearActionEventsTable(spec.actionEvents); 	
 
-	if self:getIsActive() then
+	if self:getIsActive() and self.spec_simpleIC.hasIC then
 		self:addActionEvent(spec.actionEvents, InputAction.TOGGLE_ONOFF, self, simpleIC.TOGGLE_ONOFF, true, true, false, true, nil);
 		if spec.icTurnedOn_inside then
 			local _, actionEventId = self:addActionEvent(spec.actionEvents, InputAction.INTERACT_IC_VEHICLE, self, simpleIC.INTERACT, true, false, false, true, nil);
@@ -144,42 +140,45 @@ function simpleIC:onLoad(savegame)
 		i = i+1;
 	end;
 	
-	spec.outsideInteractionTrigger = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC#outsideInteractionTrigger"), self.i3dMappings);
-	
-	spec.playerInOutsideInteractionTrigger = false;
-	
-	spec.interactionMarker = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC#interactionMarker"), self.i3dMappings)
+	if #spec.icFunctions > 0 then
+		spec.hasIC = true;
 
-	if spec.outsideInteractionTrigger ~= nil then
-		spec.outsideInteractionTriggerId = addTrigger(spec.outsideInteractionTrigger, "outsideInteractionTriggerCallback", self);   
+		spec.outsideInteractionTrigger = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC#outsideInteractionTrigger"), self.i3dMappings);
+		
+		spec.playerInOutsideInteractionTrigger = false;
+		
+		spec.interactionMarker = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC#interactionMarker"), self.i3dMappings)
+
+		if spec.outsideInteractionTrigger ~= nil then
+			spec.outsideInteractionTriggerId = addTrigger(spec.outsideInteractionTrigger, "outsideInteractionTriggerCallback", self);   
+		end;
+		
+		spec.soundVolumeIncreasePercentageAll = 1;
+		spec.soundChangeIndexList = {};	
+
+
+
+		-- 
+		spec.icTurnedOn_inside = false; 
+		spec.icTurnedOn_outside = false;
+
+		spec.icTurnedOn_inside_backup = true;	
+
+
+		spec.markerTurnedOn = true;
+
+		for i, sample in pairs(self.spec_motorized.samples) do
+			sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;		
+		end;
+		for i, sample in pairs(self.spec_motorized.motorSamples) do
+			sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;
+		end;	
 	end;
-	
-	spec.soundVolumeIncreasePercentageAll = 1;
-   	spec.soundChangeIndexList = {};	
-
-
-
-	-- 
-	spec.icTurnedOn_inside = false; 
-	spec.icTurnedOn_outside = false;
-
-	spec.icTurnedOn_inside_backup = true;	
-
-
-	spec.markerTurnedOn = true;
-
-	for i, sample in pairs(self.spec_motorized.samples) do
-		sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;		
-	end;
-	for i, sample in pairs(self.spec_motorized.motorSamples) do
-		sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;
-	end;	
-	
 end;
 
 function simpleIC:onEnterVehicle(isControlling, playerStyle, farmId)
 	local spec = self.spec_simpleIC;
-	if self:getActiveCamera() ~= nil then
+	if self:getActiveCamera() ~= nil and spec.hasIC then
 		if self:getActiveCamera().isInside then
 			self:setICState(spec.icTurnedOn_inside, false);
 		end;
@@ -193,7 +192,7 @@ end;
 -- marker turn of "globally"
 
 function simpleIC:onPostLoad(savegame)
-	if self.spec_simpleIC ~= nil and savegame ~= nil then
+	if self.spec_simpleIC ~= nil and savegame ~= nil and self.spec_simpleIC.hasIC then
 		local spec = self.spec_simpleIC;
 		local xmlFile = savegame.xmlFile;
 		
@@ -215,7 +214,7 @@ function simpleIC:onPostLoad(savegame)
 end;
 
 function simpleIC:saveToXMLFile(xmlFile, key)
-	if self.spec_simpleIC ~= nil then
+	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 		local spec = self.spec_simpleIC;
 		
 		local i = 1;
@@ -232,23 +231,26 @@ function simpleIC:saveToXMLFile(xmlFile, key)
 end;
 
 function simpleIC:onReadStream(streamId, connection)
-    local spec = self.simpleIC
-	if connection:getIsServer() then
-		for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
-			if icFunction.animation ~= nil then
-				streamReadBool(streamId, icFunction.animation.currentState)
+	local spec = self.simpleIC
+	if spec.hasIC then
+		if connection:getIsServer() then
+			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+				if icFunction.animation ~= nil then
+					streamReadBool(streamId, icFunction.animation.currentState)
+				end;	
 			end;	
-		end;	
+		end;
 	end;
 end
 
 function simpleIC:onWriteStream(streamId, connection)
 	local spec = self.simpleIC;
-	
-	if not connection:getIsServer() then
-		for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
-			if icFunction.animation ~= nil then
-				streamWriteBool(streamId, icFunction.animation.currentState)
+	if spec.hasIC then
+		if not connection:getIsServer() then
+			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+				if icFunction.animation ~= nil then
+					streamWriteBool(streamId, icFunction.animation.currentState)
+				end;
 			end;
 		end;
 	end;
@@ -262,45 +264,48 @@ function simpleIC:onDelete()
 end;
 
 function simpleIC:INTERACT(actionName, inputValue)
-	if self.spec_simpleIC.icTurnedOn_inside or self.spec_simpleIC.icTurnedOn_outside or self.spec_simpleIC.playerInOutsideInteractionTrigger then
-		local i = 1;
-		for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
-			if icFunction.canBeTriggered then
-				-- trigger animation 
-				if icFunction.animation ~= nil then
-					self:setICAnimation(not icFunction.animation.currentState, i);
+	local spec = self.spec_simpleIC;
+	if spec.hasIC then
+		if spec.icTurnedOn_inside or spec.icTurnedOn_outside or spec.playerInOutsideInteractionTrigger then
+			local i = 1;
+			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+				if icFunction.canBeTriggered then
+					-- trigger animation 
+					if icFunction.animation ~= nil then
+						self:setICAnimation(not icFunction.animation.currentState, i);
+					end;
 				end;
-			end;
-			if icFunction.canBeTriggered_ON then
-				if icFunction.animation ~= nil then
-					self:setICAnimation(true, i);
-				end;
-			end;			
-			if icFunction.canBeTriggered_OFF then
-				if icFunction.animation ~= nil then
-					self:setICAnimation(false, i);
-				end;
-			end;			
-			i = i+1;
-		end;	
+				if icFunction.canBeTriggered_ON then
+					if icFunction.animation ~= nil then
+						self:setICAnimation(true, i);
+					end;
+				end;			
+				if icFunction.canBeTriggered_OFF then
+					if icFunction.animation ~= nil then
+						self:setICAnimation(false, i);
+					end;
+				end;			
+				i = i+1;
+			end;	
+		end;
 	end;
 end;
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
-
-	if not self:getActiveCamera().isInside then
-		if inputValue == 1 then
-			self:setICState(true, true);
+	if spec.hasIC then
+		if self:getActiveCamera() ~= nil and not self:getActiveCamera().isInside then
+			if inputValue == 1 then
+				self:setICState(true, true);
+			else
+				self:setICState(false, true);
+			end;
 		else
-			self:setICState(false, true);
-		end;
-	else
-		if inputValue == 1 then
-			self:setICState(not spec.icTurnedOn_inside, false);
+			if inputValue == 1 then
+				self:setICState(not spec.icTurnedOn_inside, false);
+			end;
 		end;
 	end;
-	
 end;
 
 
@@ -338,8 +343,7 @@ end;
 
 function simpleIC:onUpdate(dt)
 
-	if self.spec_simpleIC ~= nil then
-
+	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 
 		local spec = self.spec_simpleIC;
 		if self.spec_simpleIC.playerInOutsideInteractionTrigger then
@@ -362,9 +366,8 @@ function simpleIC:onUpdate(dt)
 				self:resetCanBeTriggered();
 			end;
 		end;
-	
+
 	end;
-	
 end;
 
 function simpleIC:resetCanBeTriggered()
@@ -376,7 +379,7 @@ function simpleIC:resetCanBeTriggered()
 end;
 
 function simpleIC:onLeaveVehicle()
-	if self.spec_simpleIC ~= nil then
+	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 		self:resetCanBeTriggered();
 		self.spec_simpleIC.interactionButtonActive = false;
 	end;
@@ -465,7 +468,7 @@ function simpleIC:onDraw()
 end;
 
 function simpleIC:checkInteraction()
-	if self.spec_simpleIC ~= nil then
+	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 		local spec = self.spec_simpleIC;
 		
 		self:updateSoundAttributes(); 
