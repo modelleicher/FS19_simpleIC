@@ -51,3 +51,25 @@ ________________________________________________________________________________
 			<outsideTrigger triggerPoint_ON="sic_windowFront_outerNode_ON" triggerPoint_OFF="sic_windowFront_outerNode_OFF" triggerPointSize="0.04" />
 	</animation>	
 </simpleIC>
+
+
+## IC function with easy cylinder animation:
+____________________________________________
+-- as for the cylinderAnimations:
+-- node1 -> index of one of the nodes for the cylinder 
+-- node2 -> index of the other node for the cylinder 
+----------------------------------------------------
+cylinder-nodes are directed at each other, meaning the other part is also acting as reference point.
+In order for this to work, the cylinder-parts pivot has to be oriented in a way that the positive Z axis points the direction the cylinder-part points at.
+The "rotation" axis is the Y axis (green axis)
+
+<simpleIC outsideInteractionTrigger="sic_playerTrigger" >
+	<animation animationName="doorRight" animationSpeed="1" sharedAnimation="false" soundVolumeIncreasePercentage="0.5" >
+		<insideTrigger triggerPoint="sic_doorRight_innerNode" triggerPointSize="0.04" />
+		<outsideTrigger triggerPoint="sic_doorRight_outerNode" triggerPointSize="0.04" />
+	</animation>	
+
+	<cylinderAnimations>
+		<cylinder node1="doorLeft_strutCyl_left" node2="doorLeft_strutMain_left" />
+	</cylinderAnimations>
+</simpleIC>

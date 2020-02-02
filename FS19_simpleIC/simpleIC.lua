@@ -7,6 +7,9 @@
 --[[
 
 Changelog
+## V 0.9.1.5
+- fixed Error: simpleIC.lua:248: attempt to index local 'spec' (a nil value)
+- added cylinderAnimation for easy animation of struts on windows/doors etc.
 ## V 0.9.1.4
 - fixed IC active on all vehicles bug (now only active if vehicle actually has IC functions)
 - fixed bug Error: Running LUA method 'update' simpleIC.lua:292: attempt to index a nil value
@@ -174,6 +177,21 @@ function simpleIC:onLoad(savegame)
 			sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;
 		end;	
 	end;
+
+	spec.cylinderAnimations = {};
+	local c = 0;
+	while true do
+		local node1 = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC.cylinderAnimations.cylinder("..c..")#node1"), self.i3dMappings)
+		local node2 = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC.cylinderAnimations.cylinder("..c..")#node2"), self.i3dMappings)
+		if node1 ~= nil and node2 ~= nil then
+			spec.cylinderAnimations[c+1] = {node1 = node1, node2 = node2}
+			print("cylinder # "..tostring(c))
+		else	
+			break;
+		end;
+
+		c = c + 1;
+	end;
 end;
 
 function simpleIC:onEnterVehicle(isControlling, playerStyle, farmId)
@@ -232,7 +250,7 @@ end;
 
 function simpleIC:onReadStream(streamId, connection)
 	local spec = self.simpleIC
-	if spec.hasIC then
+	if spec ~= nil and spec.hasIC then
 		if connection:getIsServer() then
 			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
 				if icFunction.animation ~= nil then
@@ -245,7 +263,7 @@ end
 
 function simpleIC:onWriteStream(streamId, connection)
 	local spec = self.simpleIC;
-	if spec.hasIC then
+	if spec ~= nil and spec.hasIC then
 		if not connection:getIsServer() then
 			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
 				if icFunction.animation ~= nil then
@@ -265,7 +283,7 @@ end;
 
 function simpleIC:INTERACT(actionName, inputValue)
 	local spec = self.spec_simpleIC;
-	if spec.hasIC then
+	if spec ~= nil and spec.hasIC then
 		if spec.icTurnedOn_inside or spec.icTurnedOn_outside or spec.playerInOutsideInteractionTrigger then
 			local i = 1;
 			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
@@ -293,7 +311,7 @@ end;
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
-	if spec.hasIC then
+	if spec ~= nil and spec.hasIC then
 		if self:getActiveCamera() ~= nil and not self:getActiveCamera().isInside then
 			if inputValue == 1 then
 				self:setICState(true, true);
@@ -367,6 +385,30 @@ function simpleIC:onUpdate(dt)
 			end;
 		end;
 
+		if #spec.cylinderAnimations > 0 then
+			for i=1, #spec.cylinderAnimations do
+				local node1 = spec.cylinderAnimations[i].node1;
+				local node2 = spec.cylinderAnimations[i].node2;
+
+				local ax, ay, az = getWorldTranslation(node1);
+				local bx, by, bz = getWorldTranslation(node2);	
+				x, y, z = worldDirectionToLocal(getParent(node1), bx-ax, by-ay, bz-az);
+
+				local ux, uy, uz = localDirectionToWorld(node1, 0,1,0)
+				ux, uy, uz = worldDirectionToLocal(getParent(node1), ux, uy, uz)
+
+				setDirection(node1, x, y, z, ux, uy, uz);
+
+				local ax2, ay2, az2 = getWorldTranslation(node2);
+				local bx2, by2, bz2 = getWorldTranslation(node1);
+				x2, y2, z2 = worldDirectionToLocal(getParent(node2), bx2-ax2, by2-ay2, bz2-az2);
+				
+				local ux2, uy2, uz2 = localDirectionToWorld(node2, 0,1,0)
+				ux2, uy2, uz2 = worldDirectionToLocal(getParent(node2), ux2, uy2, uz2)		
+				
+				setDirection(node2, x2, y2, z2, ux2, uy2, uz2); 				
+			end;
+		end;
 	end;
 end;
 
