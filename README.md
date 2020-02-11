@@ -1,6 +1,20 @@
 # FS19_simpleIC
  New Interactive Control Script for FS19
  
+# Changelog:
+-- V 0.9.1.6
+- fixed spec insertion so simpleIC now works in every implement, trailer etc. not just drivables
+-- V 0.9.1.5
+- fixed Error: simpleIC.lua:248: attempt to index local 'spec' (a nil value)
+- added cylinderAnimation for easy animation of struts on windows/doors etc.
+-- V 0.9.1.4
+- fixed IC active on all vehicles bug (now only active if vehicle actually has IC functions)
+- fixed bug Error: Running LUA method 'update' simpleIC.lua:292: attempt to index a nil value
+- added default keymapping
+-- V 0.9.1.3
+- multiplayer fix
+- added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
+ 
 # the most important thing:
 How do I test this?
 1. download FS19_simpleIC.zip and add to modfolder

@@ -7,6 +7,8 @@
 --[[
 
 Changelog
+## V 0.9.1.6
+- fixed spec insertion so simpleIC now works in every implement, trailer etc. not just drivables
 ## V 0.9.1.5
 - fixed Error: simpleIC.lua:248: attempt to index local 'spec' (a nil value)
 - added cylinderAnimation for easy animation of struts on windows/doors etc.
@@ -170,12 +172,14 @@ function simpleIC:onLoad(savegame)
 
 		spec.markerTurnedOn = true;
 
-		for i, sample in pairs(self.spec_motorized.samples) do
-			sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;		
+		if self.spec_motorized ~= nil then -- back up samples if we are a motorized vehicle
+			for i, sample in pairs(self.spec_motorized.samples) do
+				sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;		
+			end;
+			for i, sample in pairs(self.spec_motorized.motorSamples) do
+				sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;
+			end;	
 		end;
-		for i, sample in pairs(self.spec_motorized.motorSamples) do
-			sample.indoorAttributes.volumeBackup = sample.indoorAttributes.volume;
-		end;	
 	end;
 
 	spec.cylinderAnimations = {};
@@ -311,7 +315,7 @@ end;
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
-	if spec ~= nil and spec.hasIC then
+	if spec ~= nil and spec.hasIC and self:getAttacherVehicle() == nil then 
 		if self:getActiveCamera() ~= nil and not self:getActiveCamera().isInside then
 			if inputValue == 1 then
 				self:setICState(true, true);
@@ -372,7 +376,7 @@ function simpleIC:onUpdate(dt)
         -- we need to track camera changes from inside to outside and adjust IC accordingly 
 		if self:getIsActiveForInput(true) then
             -- if isInside is true and outside turned on or vice versa we changed camera 
-			if self:getActiveCamera() ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think 
+			if self.getActiveCamera ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think 
 				-- if we toggled from inside to outside, store inside state in backup variable and turn off inside 
 				if not self:getActiveCamera().isInside then
 					spec.icTurnedOn_inside_backup = spec.icTurnedOn_inside;
