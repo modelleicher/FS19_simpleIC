@@ -7,6 +7,10 @@
 --[[
 
 Changelog
+## V 0.9.1.7
+- fixed Error: simpleIC.lua:488: attempt to index field 'spec_motorized' (a nil value)
+- fixed Error: simpleIC.lua:318: attempt to call method 'getAttacherVehicle' (a nil value)
+- reachDistance can be set per vehicle (optional, default 1.8) to specify how far away a player can reach an IC-point
 ## V 0.9.1.6
 - fixed spec insertion so simpleIC now works in every implement, trailer etc. not just drivables
 ## V 0.9.1.5
@@ -161,6 +165,7 @@ function simpleIC:onLoad(savegame)
 		spec.soundVolumeIncreasePercentageAll = 1;
 		spec.soundChangeIndexList = {};	
 
+		spec.reachDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.simpleIC#reachDistance"), 1.8)
 
 
 		-- 
@@ -315,7 +320,7 @@ end;
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
-	if spec ~= nil and spec.hasIC and self:getAttacherVehicle() == nil then 
+	if spec ~= nil and spec.hasIC and self.getAttacherVehicle == nil then 
 		if self:getActiveCamera() ~= nil and not self:getActiveCamera().isInside then
 			if inputValue == 1 then
 				self:setICState(true, true);
@@ -446,8 +451,9 @@ function simpleIC:setICAnimation(wantedState, animationIndex, noEventSend)
 		self:addSoundChangeIndex(animationIndex);
     end;
 	
-	spec.soundVolumeIncreasePercentageAll = math.max(1, spec.soundVolumeIncreasePercentageAll);
-	spec.updateSoundAttributesFlag = true;
+	if self.spec_motorized ~= nil then
+		spec.soundVolumeIncreasePercentageAll = math.max(1, spec.soundVolumeIncreasePercentageAll);
+	end;
 
 end;
 
@@ -458,10 +464,12 @@ end;
 -- so when we activate an animation we add that animation index to a sound update index list 
 
 function simpleIC:addSoundChangeIndex(index)
-	local animation =  self.spec_simpleIC.icFunctions[index].animation;
-	if animation.soundVolumeIncreasePercentage ~= false then -- check if this even has sound change effects 
-		-- now add it to the table 
-		self.spec_simpleIC.soundChangeIndexList[index] = animation; -- we add it at the index of the animation that way if we try adding the same animation twice it does overwrite itself 
+	if self.spec_motorized ~= nil then
+		local animation =  self.spec_simpleIC.icFunctions[index].animation;
+		if animation.soundVolumeIncreasePercentage ~= false then -- check if this even has sound change effects 
+			-- now add it to the table 
+			self.spec_simpleIC.soundChangeIndexList[index] = animation; -- we add it at the index of the animation that way if we try adding the same animation twice it does overwrite itself 
+		end;
 	end;
 end;
 
@@ -607,7 +615,7 @@ function simpleIC:checkInteraction()
 							-- check if our position is within the position of the triggerRadius
 							if posX < (x + tp.triggerPointRadius) and posX > (x - tp.triggerPointRadius) then
 								if posY < (y + tp.triggerPointRadius) and posY > (y - tp.triggerPointRadius) then
-									if dist < 1.8 or spec.icTurnedOn_outside then
+									if dist < spec.reachDistance or spec.icTurnedOn_outside then
 										-- can be clicked 
 										if index == 1 then -- toggle mark 
 											icFunction.canBeTriggered = true;

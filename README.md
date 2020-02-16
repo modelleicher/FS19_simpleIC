@@ -2,6 +2,10 @@
  New Interactive Control Script for FS19
  
 # Changelog:
+-- V 0.9.1.7
+- fixed Error: simpleIC.lua:488: attempt to index field 'spec_motorized' (a nil value)
+- fixed Error: simpleIC.lua:318: attempt to call method 'getAttacherVehicle' (a nil value)
+- reachDistance can be set per vehicle (optional, default 1.8) to specify how far away a player can reach an IC-point
 -- V 0.9.1.6
 - fixed spec insertion so simpleIC now works in every implement, trailer etc. not just drivables
 -- V 0.9.1.5

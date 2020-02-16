@@ -33,7 +33,8 @@ ____________________________________________________________
 -- outsideTrigger -> line for the triggerPoints that can be triggered from outside camera or player on foot 
 -- triggerPoint -> index of the transform group that marks the particular trigger point 
 -- triggerPointSize -> radius around the triggerPoint in cm where it still registeres as triggered 
-<simpleIC outsideInteractionTrigger="sic_playerTrigger" >
+-- reachDistance -> the max. distance to which a player can reach an IC point (indoor camera only, default 1.8)
+<simpleIC outsideInteractionTrigger="sic_playerTrigger" reachDistance="1.8" >
 	<animation animationName="windowFront" animationSpeed="1" sharedAnimation="false" soundVolumeIncreasePercentage="0.5" >
 		<insideTrigger triggerPoint="sic_frontWindow_innerNode" triggerPointSize="0.04" />
 		<outsideTrigger triggerPoint="sic_frontWindow_outerNode" triggerPointSize="0.04" />
