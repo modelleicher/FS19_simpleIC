@@ -74,6 +74,7 @@ function simpleIC:onLoad(savegame)
 	self.updateActionEventsSIC = simpleIC.updateActionEventsSIC;
 	self.setICState = simpleIC.setICState;
 	self.resetCanBeTriggered = simpleIC.resetCanBeTriggered;
+	self.doInteraction = simpleIC.doInteraction;
 
 	self.spec_simpleIC = {};
 	
@@ -291,7 +292,16 @@ function simpleIC:onDelete()
 end;
 
 function simpleIC:INTERACT(actionName, inputValue)
+	self:doInteraction()
+end;
+
+function simpleIC:doInteraction()
 	local spec = self.spec_simpleIC;
+	--Prevent two events if mouseEvent is triggering and the InputBinding (is not used twice)
+	if spec ~= nil and spec.actedThisFrame then
+		return
+	end
+
 	if spec ~= nil and spec.hasIC then
 		if spec.icTurnedOn_inside or spec.icTurnedOn_outside or spec.playerInOutsideInteractionTrigger then
 			local i = 1;
@@ -316,7 +326,7 @@ function simpleIC:INTERACT(actionName, inputValue)
 			end;	
 		end;
 	end;
-end;
+end
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
@@ -373,6 +383,7 @@ function simpleIC:onUpdate(dt)
 	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 
 		local spec = self.spec_simpleIC;
+		spec.actedThisFrame = false;
 		if self.spec_simpleIC.playerInOutsideInteractionTrigger then
 			self:checkInteraction()
 			self:raiseActive() -- keep vehicle awake as long as player is in trigger 

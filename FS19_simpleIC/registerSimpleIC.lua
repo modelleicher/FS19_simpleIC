@@ -32,37 +32,22 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 
 end
 
-
-
 init()
 
+function registerSimpleIC:mouseEvent(posX, posY, isDown, isUp, button)
+	if isUp then
+		local vehicle = g_currentMission.controlledVehicle
 
+		--Check if this is the key assigned to INTERACT
+		local action = g_inputBinding:getActionByName("INTERACT_IC_VEHICLE");
+		for _, binding in ipairs(action.bindings) do
+			if binding.axisNames[1] ~= nil and binding.axisNames[1] == Input.mouseButtonIdToIdName[button] then
+				if vehicle ~= nil and vehicle.spec_simpleIC ~= nil then
+					simpleIC.doInteraction(vehicle)
+				end
+			end
+		end
+	end
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+addModEventListener(registerSimpleIC)
