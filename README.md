@@ -2,6 +2,8 @@
  New Interactive Control Script for FS19
  
 # Changelog:
+-- V 0.9.1.8
+- fixed Issue introduced in the last version of indoor buttons only working when the ingame-menu is on, fully removed issue with double-mapping of mouseButtons I hope
 -- V 0.9.1.7
 - fixed Error: simpleIC.lua:488: attempt to index field 'spec_motorized' (a nil value)
 - fixed Error: simpleIC.lua:318: attempt to call method 'getAttacherVehicle' (a nil value)

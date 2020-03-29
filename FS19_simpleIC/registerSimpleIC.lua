@@ -34,20 +34,25 @@ end
 
 init()
 
+-- FIX for double-mapping of mouse buttons by Stephan-S
 function registerSimpleIC:mouseEvent(posX, posY, isDown, isUp, button)
-	if isUp then
-		local vehicle = g_currentMission.controlledVehicle
-
+	if isUp or isDown then
 		--Check if this is the key assigned to INTERACT
 		local action = g_inputBinding:getActionByName("INTERACT_IC_VEHICLE");
 		for _, binding in ipairs(action.bindings) do
 			if binding.axisNames[1] ~= nil and binding.axisNames[1] == Input.mouseButtonIdToIdName[button] then
+				local vehicle = g_currentMission.controlledVehicle
 				if vehicle ~= nil and vehicle.spec_simpleIC ~= nil then
-					simpleIC.doInteraction(vehicle)
-				end
+					if isUp then
+						vehicle.spec_simpleIC.interact_present = true;
+						vehicle:doInteraction()
+					elseif isDown then
+						vehicle.spec_simpleIC.interact_present = false;
+					end
+				end			
 			end
-		end
-	end
+		end	
+	end;
 end
 
 addModEventListener(registerSimpleIC)

@@ -174,9 +174,8 @@ function simpleIC:onLoad(savegame)
 		spec.icTurnedOn_outside = false;
 
 		spec.icTurnedOn_inside_backup = true;	
-
-
-		spec.markerTurnedOn = true;
+		
+		spec.interact_present = false;
 
 		if self.spec_motorized ~= nil then -- back up samples if we are a motorized vehicle
 			for i, sample in pairs(self.spec_motorized.samples) do
@@ -292,15 +291,13 @@ function simpleIC:onDelete()
 end;
 
 function simpleIC:INTERACT(actionName, inputValue)
-	self:doInteraction()
+	if not self.spec_simpleIC.interact_present then 
+		self:doInteraction()
+	end;
 end;
 
 function simpleIC:doInteraction()
 	local spec = self.spec_simpleIC;
-	--Prevent two events if mouseEvent is triggering and the InputBinding (is not used twice)
-	if spec ~= nil and spec.actedThisFrame then
-		return
-	end
 
 	if spec ~= nil and spec.hasIC then
 		if spec.icTurnedOn_inside or spec.icTurnedOn_outside or spec.playerInOutsideInteractionTrigger then
@@ -325,6 +322,7 @@ function simpleIC:doInteraction()
 				i = i+1;
 			end;	
 		end;
+
 	end;
 end
 
@@ -383,7 +381,6 @@ function simpleIC:onUpdate(dt)
 	if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
 
 		local spec = self.spec_simpleIC;
-		spec.actedThisFrame = false;
 		if self.spec_simpleIC.playerInOutsideInteractionTrigger then
 			self:checkInteraction()
 			self:raiseActive() -- keep vehicle awake as long as player is in trigger 
