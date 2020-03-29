@@ -43,10 +43,12 @@ function registerSimpleIC:mouseEvent(posX, posY, isDown, isUp, button)
 			if binding.axisNames[1] ~= nil and binding.axisNames[1] == Input.mouseButtonIdToIdName[button] then
 				local vehicle = g_currentMission.controlledVehicle
 				if vehicle ~= nil and vehicle.spec_simpleIC ~= nil then
-					if isUp then
+					if isDown then
 						vehicle.spec_simpleIC.interact_present = true;
-						vehicle:doInteraction()
-					elseif isDown then
+						if not vehicle.spec_simpleIC.interact_default then
+							vehicle:doInteraction()
+						end;
+					elseif isUp then
 						vehicle.spec_simpleIC.interact_present = false;
 					end
 				end			

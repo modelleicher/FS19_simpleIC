@@ -7,6 +7,10 @@
 --[[
 
 Changelog
+## V 0.9.1.9
+- fixed the issue introduced in the version before last version and partially fixed in the last version. Now fixed completely. I hope.. again.
+## V 0.9.1.8
+- fixed Issue introduced in the last version of indoor buttons only working when the ingame-menu is on, fully removed issue with double-mapping of mouseButtons I hope
 ## V 0.9.1.7
 - fixed Error: simpleIC.lua:488: attempt to index field 'spec_motorized' (a nil value)
 - fixed Error: simpleIC.lua:318: attempt to call method 'getAttacherVehicle' (a nil value)
@@ -56,7 +60,7 @@ function simpleIC.onRegisterActionEvents(self, isActiveForInput)
 	if self:getIsActive() and self.spec_simpleIC.hasIC then
 		self:addActionEvent(spec.actionEvents, InputAction.TOGGLE_ONOFF, self, simpleIC.TOGGLE_ONOFF, true, true, false, true, nil);
 		if spec.icTurnedOn_inside then
-			local _, actionEventId = self:addActionEvent(spec.actionEvents, InputAction.INTERACT_IC_VEHICLE, self, simpleIC.INTERACT, true, false, false, true, nil);
+			local _, actionEventId = self:addActionEvent(spec.actionEvents, InputAction.INTERACT_IC_VEHICLE, self, simpleIC.INTERACT, true, true, false, true, nil);
 			g_inputBinding:setActionEventTextVisibility(actionEventId, false);
 			spec.interactionButtonActive = true;
 		end;
@@ -176,6 +180,7 @@ function simpleIC:onLoad(savegame)
 		spec.icTurnedOn_inside_backup = true;	
 		
 		spec.interact_present = false;
+		spec.interact_default = false;
 
 		if self.spec_motorized ~= nil then -- back up samples if we are a motorized vehicle
 			for i, sample in pairs(self.spec_motorized.samples) do
@@ -291,11 +296,16 @@ function simpleIC:onDelete()
 end;
 
 function simpleIC:INTERACT(actionName, inputValue)
-	if not self.spec_simpleIC.interact_present then 
-		self:doInteraction()
+	if inputValue > 0.5 then
+		self.spec_simpleIC.interact_default = true;
+		if not self.spec_simpleIC.interact_present then 
+			self:doInteraction()
+		end;	
+	else
+		self.spec_simpleIC.interact_default = false;
 	end;
 end;
-
+			
 function simpleIC:doInteraction()
 	local spec = self.spec_simpleIC;
 
