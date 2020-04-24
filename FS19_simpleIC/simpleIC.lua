@@ -7,6 +7,8 @@
 --[[
 
 Changelog
+## V 0.9.2.0
+- addition of SimpleIC-ImplementBalls
 ## V 0.9.1.9
 - fixed the issue introduced in the version before last version and partially fixed in the last version. Now fixed completely. I hope.. again.
 ## V 0.9.1.8
@@ -65,6 +67,11 @@ function simpleIC.onRegisterActionEvents(self, isActiveForInput)
 			spec.interactionButtonActive = true;
 		end;
 	end;	
+end;
+
+function simpleIC:addRemoveOutsideButton()
+
+
 end;
 
 
@@ -210,7 +217,7 @@ end;
 
 function simpleIC:onEnterVehicle(isControlling, playerStyle, farmId)
 	local spec = self.spec_simpleIC;
-	if self:getActiveCamera() ~= nil and spec.hasIC then
+	if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and spec.hasIC then
 		if self:getActiveCamera().isInside then
 			self:setICState(spec.icTurnedOn_inside, false);
 		end;
@@ -332,14 +339,23 @@ function simpleIC:doInteraction()
 				i = i+1;
 			end;	
 		end;
+	end;
 
+	-- implement balls
+	if self.spec_implementBalls ~= nil then
+		local spec1 = self.spec_implementBalls;
+		for index, implementJoint in pairs(spec1.implementJoints) do
+			if implementJoint.canBeClicked then
+				self:setImplementBalls(index)
+			end;
+		end;
 	end;
 end
 
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
 	if spec ~= nil and spec.hasIC and self.getAttacherVehicle == nil then 
-		if self:getActiveCamera() ~= nil and not self:getActiveCamera().isInside then
+		if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and not self:getActiveCamera().isInside then
 			if inputValue == 1 then
 				self:setICState(true, true);
 			else
@@ -399,7 +415,7 @@ function simpleIC:onUpdate(dt)
         -- we need to track camera changes from inside to outside and adjust IC accordingly 
 		if self:getIsActiveForInput(true) then
             -- if isInside is true and outside turned on or vice versa we changed camera 
-			if self.getActiveCamera ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think 
+			if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think 
 				-- if we toggled from inside to outside, store inside state in backup variable and turn off inside 
 				if not self:getActiveCamera().isInside then
 					spec.icTurnedOn_inside_backup = spec.icTurnedOn_inside;

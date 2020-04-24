@@ -17,8 +17,9 @@ end
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
 	specializationManager:addSpecialization("simpleIC", "simpleIC", modDirectory.."simpleIC.lua", nil)
+	specializationManager:addSpecialization("simpleIC_implementBalls", "simpleIC_implementBalls", modDirectory.."simpleIC_implementBalls.lua", nil)
+		
 	
-
 	for typeName, typeEntry in pairs(vehicleTypeManager:getVehicleTypes()) do
 		
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
@@ -26,6 +27,10 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".simpleIC")
 				print("inserted simpleIC to "..tostring(typeName));
+				if SpecializationUtil.hasSpecialization(Attachable, typeEntry.specializations) then
+					vehicleTypeManager:addSpecialization(typeName, modName .. ".simpleIC_implementBalls")
+					print("inserted simpleIC_implementBalls to "..tostring(typeName));
+				end;
 			end;
         end
     end
@@ -55,6 +60,46 @@ function registerSimpleIC:mouseEvent(posX, posY, isDown, isUp, button)
 			end
 		end	
 	end;
-end
+end;
+
+function registerSimpleIC:update(dt)
+	if g_currentMission.simpleIC_implementBalls ~= nil then -- check if we have implementBalls active 
+		--print("simpleIC_implementBalls not nil")
+		if g_currentMission.controlPlayer and g_currentMission.player ~= nil and not g_gui:getIsGuiVisible() then -- check if we are the player and no GUI is open
+			--print("run player")
+			local x, y, z = getWorldTranslation(g_currentMission.player.rootNode); -- get player pos 
+			for index, spec in pairs(g_currentMission.simpleIC_implementBalls) do -- run through all implementBalls specs
+				for _, implementJoint in pairs(spec.implementJoints) do -- run through all inputAttachers with implement type of this spec 
+					local aX, aY, aZ = getWorldTranslation(implementJoint.node) -- get pos of implement joint node 
+
+					local distance = MathUtil.vector3Length(x - aX, y - aY, z - aZ); -- get distance to player 
+
+					--print("distance: "..tostring(distance))
+					
+					if distance < spec.maxDistance then -- if we're close enough activate stuffs 
+						-- if we're in distance, show the X and activate inputBinding
+						implementJoint.showX = true;
+						spec.vehicle:raiseActive()
+
+						if not spec.isInputActive then
+							local specSIC = spec.vehicle.spec_simpleIC;
+							specSIC.actionEvents = {}; -- create actionEvents table since in case we didn't enter the vehicle yet it does not exist 
+							spec.vehicle:clearActionEventsTable(specSIC.actionEvents); -- also clear it for good measure 
+							local _ , eventId = spec.vehicle:addActionEvent(specSIC.actionEvents, InputAction.INTERACT_IC_ONFOOT, spec.vehicle, simpleIC.INTERACT, false, true, false, true);	-- now add the actionEvent 	
+							spec.isInputActive = true;
+						end;					
+					else
+						if spec.isInputActive then
+							spec.vehicle:removeActionEvent(spec.vehicle.spec_simpleIC.actionEvents, InputAction.INTERACT_IC_ONFOOT);
+							spec.isInputActive = false;
+							implementJoint.showX = false;
+						end;
+					end;	
+				end;	
+			end;
+		end;
+	end;
+
+end;
 
 addModEventListener(registerSimpleIC)
