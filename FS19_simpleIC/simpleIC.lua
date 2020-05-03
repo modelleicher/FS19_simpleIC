@@ -7,6 +7,9 @@
 --[[
 
 Changelog
+## V 0.9.2.1
+- possibly fixed dedicated server issue 
+- removed "cylinder" debug finally 
 ## V 0.9.2.0
 - addition of SimpleIC-ImplementBalls
 ## V 0.9.1.9
@@ -206,7 +209,6 @@ function simpleIC:onLoad(savegame)
 		local node2 = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC.cylinderAnimations.cylinder("..c..")#node2"), self.i3dMappings)
 		if node1 ~= nil and node2 ~= nil then
 			spec.cylinderAnimations[c+1] = {node1 = node1, node2 = node2}
-			print("cylinder # "..tostring(c))
 		else	
 			break;
 		end;
@@ -275,7 +277,8 @@ function simpleIC:onReadStream(streamId, connection)
 		if connection:getIsServer() then
 			for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
 				if icFunction.animation ~= nil then
-					streamReadBool(streamId, icFunction.animation.currentState)
+					local state = streamReadBool(streamId)
+					icFunction.animation.currentState = state;
 				end;	
 			end;	
 		end;

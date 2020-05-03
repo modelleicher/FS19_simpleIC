@@ -199,18 +199,16 @@ end;
 function setICImplementBallsEvent:readStream(streamId, connection)  
     self.vehicle = NetworkUtil.readNodeObject(streamId); 
 	self.state = streamReadBool(streamId); 
-	self.ballIndex =  Utils.getNoNil(streamReadUIntN(streamId, 6), 1);
+	self.ballIndex = streamReadUIntN(streamId, 6);
     self:run(connection);  
 end;
 function setICImplementBallsEvent:writeStream(streamId, connection)   
 	NetworkUtil.writeNodeObject(streamId, self.vehicle);   
     streamWriteBool(streamId, self.state ); 
-    if self.ballIndex ~= 1 then
-        streamWriteUIntN(streamId, self.ballIndex, 6); 
-    end;
+    streamWriteUIntN(streamId, self.ballIndex, 6); 
 end;
 function setICImplementBallsEvent:run(connection) 
-    self.vehicle:setImplementBalls(self.ballIndex, state, true);
+    self.vehicle:setImplementBalls(self.ballIndex, self.state, true);
     if not connection:getIsServer() then  
         g_server:broadcastEvent(setICImplementBallsEvent:new(self.vehicle, self.state, self.ballIndex), nil, connection, self.object);
     end;
