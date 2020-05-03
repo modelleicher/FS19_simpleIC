@@ -37,9 +37,9 @@
     </inputBinding>	
 	
 	<l10n>	
-		<text name="input_TOGGLE_ONOFF"><de>IC: an/aus schalten</de><en>IC: on/off</en></text>	
-		<text name="input_INTERACT_IC_VEHICLE"><de>IC: Interagieren vehicle</de><en>IC: interact vehicle</en></text>	
-		<text name="input_INTERACT_IC_ONFOOT"><de>IC: Interagieren zu Fuß</de><en>IC: interact on foot</en></text>	
+		<text name="input_TOGGLE_ONOFF"><de>IC: an/aus schalten</de><en>IC: on/off</en><pl>IC: Włącz/Wyłącz</pl></text>	
+		<text name="input_INTERACT_IC_VEHICLE"><de>IC: Interagieren vehicle</de><en>IC: interact vehicle</en><pl>IC: Interakcja w pojeździe</pl></text>	
+		<text name="input_INTERACT_IC_ONFOOT"><de>IC: Interagieren zu Fuß</de><en>IC: interact on foot</en><pl>IC: Interakcja na podejście</pl></text>	
 	</l10n>
 	<actions>
 		<action name="TOGGLE_ONOFF" />
