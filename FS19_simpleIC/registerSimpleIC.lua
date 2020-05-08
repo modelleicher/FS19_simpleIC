@@ -33,7 +33,7 @@ Changelog
 
 registerSimpleIC = {};
 
-registerSimpleIC.version = 0.9.2.2
+registerSimpleIC.version = "0.9.2.2"
 
 local modName = g_currentModName;
 local modDirectory = g_currentModDirectory;
