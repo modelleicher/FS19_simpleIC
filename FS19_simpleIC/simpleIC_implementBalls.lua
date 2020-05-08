@@ -39,10 +39,10 @@ function simpleIC_implementBalls:onLoad(savegame)
     if self.spec_attachable.inputAttacherJoints ~= nil then
         local jointTypeWant = AttacherJoints.jointTypeNameToInt["implement"]
         spec.implementJoints = {};
-        for index , inputAttacherJoint in pairs(self.spec_attachable.inputAttacherJoints) do
+        for _ , inputAttacherJoint in pairs(self.spec_attachable.inputAttacherJoints) do
             if inputAttacherJoint.jointType == jointTypeWant and inputAttacherJoint.node ~= nil then 
                 inputAttacherJoint.showBalls = false;
-                spec.implementJoints[index] = inputAttacherJoint;
+                spec.implementJoints[#spec.implementJoints+1] = inputAttacherJoint;
             end;
         end;
         if #spec.implementJoints < 1 then
@@ -120,9 +120,9 @@ function simpleIC_implementBalls:onPostLoad(savegame)
 		local spec = self.spec_implementBalls;
 		local xmlFile = savegame.xmlFile;
 		
-		local i = 1;
+
         local key1 = savegame.key..".FS19_simpleIC.simpleIC_implementBalls"
-		for _, implementJoint in pairs(spec.implementJoints) do
+		for i, implementJoint in pairs(spec.implementJoints) do
 			-- load ball state
 			if implementJoint.showBalls ~= nil then
 				local state = getXMLBool(xmlFile, key1..".implementBall"..i.."#state");
@@ -130,8 +130,6 @@ function simpleIC_implementBalls:onPostLoad(savegame)
 					self:setImplementBalls(i, state)
 				end;
 			end;
-			
-			i = i+1;
 		end;
 	end;
 end;
@@ -140,13 +138,11 @@ function simpleIC_implementBalls:saveToXMLFile(xmlFile, key)
 	if self.spec_implementBalls ~= nil then
 		local spec = self.spec_implementBalls;
 		
-		local i = 1;
-		for _, implementJoint in pairs(spec.implementJoints) do
+		for i, implementJoint in pairs(spec.implementJoints) do
 			-- save ball state
 			if implementJoint.showBalls ~= nil then
 				setXMLBool(xmlFile, key..".implementBall"..i.."#state", implementJoint.showBalls);
 			end;
-			i = i+1;
 		end;
 
 	end;
@@ -156,13 +152,11 @@ function simpleIC_implementBalls:onReadStream(streamId, connection)
 	local spec = self.spec_implementBalls
 	if spec ~= nil then
         if connection:getIsServer() then
-            local i = 1;
-			for _, implementJoint in pairs(spec.implementJoints) do
+			for i, implementJoint in pairs(spec.implementJoints) do
                 local state = streamReadBool(streamId, implementJoint.showBalls)
                 if state ~= nil then
                     self:setImplementBalls(i, state)
                 end;
-                i = i+1;
 			end;	
 		end;
 	end;
