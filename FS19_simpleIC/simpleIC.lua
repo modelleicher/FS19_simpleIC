@@ -190,10 +190,13 @@ end;
 function simpleIC:onEnterVehicle(isControlling, playerStyle, farmId)
 	local spec = self.spec_simpleIC;
 	if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and spec.hasIC then
-		if self:getActiveCamera().isInside then
+		--if self:getActiveCamera().isInside then -- BACKUP
+		local activeCamera = self:getActiveCamera()
+		if activeCamera ~= nil and activeCamera.isInside then
 			self:setICState(spec.icTurnedOn_inside, false);
+			spec.lastCameraInside = activeCamera.isInside;
 		end;
-		spec.lastCameraInside = self:getActiveCamera().isInside;
+		--spec.lastCameraInside = self:getActiveCamera().isInside; -- BACKUP
 	end;
 end;
 
@@ -328,15 +331,19 @@ end
 function simpleIC:TOGGLE_ONOFF(actionName, inputValue)
 	local spec = self.spec_simpleIC;
 	if spec ~= nil and spec.hasIC and self.getAttacherVehicle == nil then 
-		if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and not self:getActiveCamera().isInside then
-			if inputValue == 1 then
-				self:setICState(true, true);
+		--if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and not self:getActiveCamera().isInside then -- BACKUP
+		if self.spec_enterable ~= nil and self.getActiveCamera ~= nil then
+			local activeCamera = self:getActiveCamera()
+			if activeCamera ~= nil and not activeCamera.isInside then
+				if inputValue == 1 then
+					self:setICState(true, true);
+				else
+					self:setICState(false, true);
+				end;
 			else
-				self:setICState(false, true);
-			end;
-		else
-			if inputValue == 1 then
-				self:setICState(not spec.icTurnedOn_inside, false);
+				if inputValue == 1 then
+					self:setICState(not spec.icTurnedOn_inside, false);
+				end;
 			end;
 		end;
 	end;
@@ -387,17 +394,25 @@ function simpleIC:onUpdate(dt)
 		
         -- we need to track camera changes from inside to outside and adjust IC accordingly 
 		if self:getIsActiveForInput(true) then
-            -- if isInside is true and outside turned on or vice versa we changed camera 
-			if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think 
-				-- if we toggled from inside to outside, store inside state in backup variable and turn off inside 
-				if not self:getActiveCamera().isInside then
-					spec.icTurnedOn_inside_backup = spec.icTurnedOn_inside;
-                    self:setICState(false, true);
-                else -- if we toggled to inside restore backup value 
-                    self:setICState(spec.icTurnedOn_inside_backup, false);
+			-- if isInside is true and outside turned on or vice versa we changed camera 
+			--if self.spec_enterable ~= nil and self.getActiveCamera ~= nil and self:getActiveCamera().isInside ~= spec.lastCameraInside then -- TO DO, fix nil bug here -- done I think -- BACKUP
+			if self.spec_enterable ~= nil and self.getActiveCamera ~= nil then -- TO DO, fix nil bug here -- done I think 
+				-- if we toggled from inside to outside, store inside state in backup variable and turn off inside
+				
+				local activeCamera = self:getActiveCamera()
+				if activeCamera ~= nil and activeCamera.isInside ~= spec.lastCameraInside then
+					if not activeCamera.isInside then
+					--if not self:getActiveCamera().isInside then -- BACKUP
+						spec.icTurnedOn_inside_backup = spec.icTurnedOn_inside;
+						self:setICState(false, true);
+					else -- if we toggled to inside restore backup value 
+						self:setICState(spec.icTurnedOn_inside_backup, false);
+					end;
+					spec.lastCameraInside = activeCamera.isInside;
+					self:resetCanBeTriggered();
 				end;
-				spec.lastCameraInside = self:getActiveCamera().isInside;
-				self:resetCanBeTriggered();
+				--spec.lastCameraInside = self:getActiveCamera().isInside; -- BACKUP
+				--self:resetCanBeTriggered(); -- BACKUP
 			end;
 		end;
 
@@ -548,7 +563,9 @@ function simpleIC:checkInteraction()
 			end;
 
 			if not isPlayerTrigger then
-				if self:getActiveCamera() ~= nil and self:getActiveCamera().isInside then
+				-- if self:getActiveCamera() ~= nil and self:getActiveCamera().isInside then -- BACKUP
+				local activeCamera = self:getActiveCamera() 
+				if activeCamera ~= nil and activeCamera.isInside then
 					isInside = true;
 				end;
 			end;
@@ -701,16 +718,3 @@ function setICAnimationEvent.sendEvent(vehicle, wantedState, animationIndex, noE
         end;
     end;
 end;
-
-
-
-
-
-
-
-
-
-
-
-
-
