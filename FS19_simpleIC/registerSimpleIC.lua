@@ -1,5 +1,7 @@
 --[[
 Changelog
+## V 0.9.2.3
+- MP Server fix of vehicle not enterable
 ## V 0.9.2.2
 - fix for line 102 error I think, couldn't reproduce but I found an issue with the table indexing and I think it worked fine for most mods but some may have caused the issue to show.
 ## V 0.9.2.1
