@@ -42,12 +42,6 @@ function simpleIC.onRegisterActionEvents(self, isActiveForInput)
 	end;	
 end;
 
-function simpleIC:addRemoveOutsideButton()
-
-
-end;
-
-
 function simpleIC:onLoad(savegame)
 	self.setICAnimation = simpleIC.setICAnimation;
 	self.outsideInteractionTriggerCallback = simpleIC.outsideInteractionTriggerCallback;
@@ -60,6 +54,12 @@ function simpleIC:onLoad(savegame)
 	self.resetCanBeTriggered = simpleIC.resetCanBeTriggered;
 	self.doInteraction = simpleIC.doInteraction;
 	self.isCameraInsideCheck = simpleIC.isCameraInsideCheck;
+	self.loadAnimation = simpleIC.loadAnimation;
+	self.loadAttacherControl = simpleIC.loadAttacherControl;	
+	self.loadICFunctions = simpleIC.loadICFunctions;
+	self.setAttacherControl = simpleIC.setAttacherControl;
+	self.loadPTOControl = simpleIC.loadPTOControl;
+	self.setPTOControl = simpleIC.setPTOControl;
 
 	self.spec_simpleIC = {};
 	
@@ -69,71 +69,14 @@ function simpleIC:onLoad(savegame)
 	spec.icFunctions = {};
 	
 	-- load the animations from XML 
-	local i = 0;
-	while true do
-	
-		local icFunction = {};
-		
-		local hasFunction = false;
-		
-		-- for now all we have is animations, no other types of functions 	
-		local key = "vehicle.simpleIC.animation("..i..")";
-		
-		local anim = {};
-		anim.animationName = getXMLString(self.xmlFile, key.."#animationName");
-		if anim.animationName ~= "" and anim.animationName ~= nil then
-			hasFunction = true;
-			
-			anim.animationSpeed = Utils.getNoNil(getXMLFloat(self.xmlFile, key.."#animationSpeed"), 1);
-			anim.sharedAnimation = Utils.getNoNil(getXMLBool(self.xmlFile, key.."#sharedAnimation"), false);
-			anim.currentState = false;
-			
-			if not anim.sharedAnimation then
-				self:playAnimation(anim.animationName, -anim.animationSpeed, self:getAnimationTime(anim.animationName), true);
-			end;
-			
-			anim.duration = self:getAnimationDuration(anim.animationName);
-			anim.soundVolumeIncreasePercentage = Utils.getNoNil(getXMLFloat(self.xmlFile, key.."#soundVolumeIncreasePercentage"), false);
-			
-			icFunction.animation = anim;
-		end;
-		
-		
-		-- end animation 
-		
-		if not hasFunction then -- break if we don't have a function 
-			break;
-		end;
-		
-		-- start universal icFunction XML stuff 
-		icFunction.currentState = false;
-		
-		icFunction.inTP = {};
-		icFunction.inTP.triggerPoint = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint"), self.i3dMappings);
-		icFunction.inTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerPointSize"), 0.04);
-		icFunction.inTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerDistance"), 1);
-		
-		if icFunction.inTP.triggerPoint == nil then
-			icFunction.inTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_ON"), self.i3dMappings);
-			icFunction.inTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_OFF"), self.i3dMappings);
-		end;
-		
-		
-		icFunction.outTP = {};
-		icFunction.outTP.triggerPoint = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint"), self.i3dMappings);
-		icFunction.outTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerPointSize"), 0.04);
-		icFunction.outTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerDistance"), 1);
+	self:loadICFunctions("vehicle.simpleIC.animation", self.loadAnimation)
 
-		if icFunction.outTP.triggerPoint == nil then
-			icFunction.outTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_ON"), self.i3dMappings);
-			icFunction.outTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_OFF"), self.i3dMappings);
-		end;
-		
+	-- load attacherControl 
+	self:loadICFunctions("vehicle.simpleIC.attacherControl", self.loadAttacherControl)
 
-		table.insert(spec.icFunctions, icFunction);
-		--print("Simple IC Function added "..tostring(anim.animationName));
-		i = i+1;
-	end;
+	-- load pto control 
+	self:loadICFunctions("vehicle.simpleIC.ptoControl", self.loadPTOControl)
+
 	
 	if #spec.icFunctions > 0 then
 		spec.hasIC = true;
@@ -158,7 +101,7 @@ function simpleIC:onLoad(savegame)
 		spec.icTurnedOn_inside = false; 
 		spec.icTurnedOn_outside = false;
 
-		spec.icTurnedOn_inside_backup = true;	
+		spec.icTurnedOn_inside_backup = false;	
 		
 		spec.interact_present = false;
 		spec.interact_default = false;
@@ -186,6 +129,111 @@ function simpleIC:onLoad(savegame)
 
 		c = c + 1;
 	end;
+end;
+
+function simpleIC:loadICFunctions(keyOrig, loadFunc)
+	local spec = self.spec_simpleIC;
+	local i = 0;
+	while true do
+		local icFunction = {};
+		local hasFunction = false;
+		local key = keyOrig.."("..i..")"
+
+		print(key)
+	
+		hasFunction = loadFunc(self, key, icFunction);
+
+		print(hasFunction)
+
+		if hasFunction then
+			icFunction.currentState = false;
+	
+			icFunction.inTP = {};
+			icFunction.inTP.triggerPoint = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint"), self.i3dMappings);
+			icFunction.inTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerPointSize"), 0.04);
+			icFunction.inTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".insideTrigger#triggerDistance"), 1);
+			
+			if icFunction.inTP.triggerPoint == nil then
+				icFunction.inTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_ON"), self.i3dMappings);
+				icFunction.inTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".insideTrigger#triggerPoint_OFF"), self.i3dMappings);
+			end;
+			
+			
+			icFunction.outTP = {};
+			icFunction.outTP.triggerPoint = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint"), self.i3dMappings);
+			icFunction.outTP.triggerPointRadius = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerPointSize"), 0.04);
+			icFunction.outTP.triggerDistance = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".outsideTrigger#triggerDistance"), 1);
+		
+			if icFunction.outTP.triggerPoint == nil then
+				icFunction.outTP.triggerPoint_ON = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_ON"), self.i3dMappings);
+				icFunction.outTP.triggerPoint_OFF = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, key..".outsideTrigger#triggerPoint_OFF"), self.i3dMappings);
+			end;
+			
+			table.insert(spec.icFunctions, icFunction);
+		else
+			break;
+		end;
+		i = i+1;
+	end;
+
+end;
+
+function simpleIC:loadPTOControl(key, table)
+	local ptoControl ={};
+	ptoControl.attacherIndex = getXMLInt(self.xmlFile, key.."#attacherIndex");
+	if ptoControl.attacherIndex ~= nil then
+
+		local leverAnimation = getXMLString(self.xmlFile, key.."#leverAnimation");
+		if leverAnimation ~= "" and leverAnimation ~= nil then
+			ptoControl.leverAnimation = leverAnimation;
+			ptoControl.leverAnimationState = false;
+		end;
+
+		table.ptoControl = ptoControl;
+		return true;
+	end;
+end;
+
+function simpleIC:loadAttacherControl(key, table)
+
+	local attacherControl = {}
+	attacherControl.attacherIndex = getXMLInt(self.xmlFile, key.."#attacherIndex");
+	if attacherControl.attacherIndex ~= nil then
+
+		local leverAnimation = getXMLString(self.xmlFile, key.."#leverAnimation");
+		if leverAnimation ~= "" and leverAnimation ~= nil then
+			attacherControl.leverAnimation = leverAnimation;
+			attacherControl.leverAnimationState = false;
+		end;
+
+		table.attacherControl = attacherControl;
+		return true;
+	end;
+
+end;
+
+function simpleIC:loadAnimation(key, table)
+
+	local anim = {};
+	anim.animationName = getXMLString(self.xmlFile, key.."#animationName");
+	if anim.animationName ~= "" and anim.animationName ~= nil then
+		
+		anim.animationSpeed = Utils.getNoNil(getXMLFloat(self.xmlFile, key.."#animationSpeed"), 1);
+		anim.sharedAnimation = Utils.getNoNil(getXMLBool(self.xmlFile, key.."#sharedAnimation"), false);
+		anim.currentState = false;
+		
+		if not anim.sharedAnimation then
+			self:playAnimation(anim.animationName, -anim.animationSpeed, self:getAnimationTime(anim.animationName), true);
+		end;
+		
+		anim.duration = self:getAnimationDuration(anim.animationName);
+		anim.soundVolumeIncreasePercentage = Utils.getNoNil(getXMLFloat(self.xmlFile, key.."#soundVolumeIncreasePercentage"), false);
+		
+		table.animation = anim;
+		return true;
+	end;
+
+	return false;
 end;
 
 function simpleIC:onEnterVehicle(isControlling, playerStyle, farmId)
@@ -219,6 +267,20 @@ function simpleIC:onPostLoad(savegame)
 				local state = getXMLBool(xmlFile, key1..".icFunction"..i.."#animationState");
 				if state ~= nil then
 					self:setICAnimation(state, i, true)
+				end;
+			end;
+
+			if icFunction.attacherControl ~= nil then
+				if icFunction.attacherControl.leverAnimation ~= nil then
+					if self.spec_attacherJoints.attacherJoints[icFunction.attacherControl.attacherIndex] ~= nil then
+						local wantedState = self.spec_attacherJoints.attacherJoints[icFunction.attacherControl.attacherIndex].moveDown
+						local speed = 1;
+						if not wantedState then
+							speed = -1;
+						end;
+						self:playAnimation(icFunction.attacherControl.leverAnimation, speed, self:getAnimationTime(icFunction.attacherControl.leverAnimation), true);
+						icFunction.attacherControl.leverAnimationState = wantedState;	
+					end;
 				end;
 			end;
 			
@@ -288,7 +350,55 @@ function simpleIC:INTERACT(actionName, inputValue)
 		self.spec_simpleIC.interact_default = false;
 	end;
 end;
-			
+
+function simpleIC:setPTOControl(wantedState, i)
+	local ptoControl = self.spec_simpleIC.icFunctions[i].ptoControl;
+
+	for _, implement in pairs(self.spec_attacherJoints.attachedImplements) do
+		if implement.jointDescIndex == ptoControl.attacherIndex then
+			if implement.object.spec_turnOnVehicle ~= nil then
+				if wantedState == nil then
+					wantedState = not implement.object.spec_turnOnVehicle.isTurnedOn;
+				end;
+				implement.object:setIsTurnedOn(wantedState)
+				if ptoControl.leverAnimation ~= nil and speed ~= 0 then
+					local speed = 1;
+					if not wantedState then
+						speed = -1;
+					end;
+					self:playAnimation(ptoControl.leverAnimation, speed, self:getAnimationTime(ptoControl.leverAnimation), true);
+					ptoControl.leverAnimationState = wantedState;			
+				end;				
+			end;
+		end;
+	end;
+end;
+
+function simpleIC:setAttacherControl(wantedState, i)
+	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;
+	local spec_attacherJoints = self.spec_attacherJoints;
+
+	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil then
+
+		if wantedState == nil then
+			wantedState = not spec_attacherJoints.attacherJoints[attacherControl.attacherIndex].moveDown
+		end;
+
+		self:setJointMoveDown(attacherControl.attacherIndex, wantedState)
+
+		if attacherControl.leverAnimation ~= nil and speed ~= 0 then
+			local speed = 1;
+			if not wantedState then
+				speed = -1;
+			end;
+			self:playAnimation(attacherControl.leverAnimation, speed, self:getAnimationTime(attacherControl.leverAnimation), true);
+			attacherControl.leverAnimationState = wantedState;			
+		end;
+
+	end;
+end;
+
+		
 function simpleIC:doInteraction()
 	local spec = self.spec_simpleIC;
 
@@ -301,16 +411,36 @@ function simpleIC:doInteraction()
 					if icFunction.animation ~= nil then
 						self:setICAnimation(not icFunction.animation.currentState, i);
 					end;
+
+					if icFunction.attacherControl ~= nil then
+						self:setAttacherControl(nil, i)
+					end;
+
+					if icFunction.ptoControl ~= nil then
+						self:setPTOControl(nil, i)
+					end;
 				end;
 				if icFunction.canBeTriggered_ON then
 					if icFunction.animation ~= nil then
 						self:setICAnimation(true, i);
 					end;
+					if icFunction.attacherControl ~= nil then
+						self:setAttacherControl(true, i)
+					end;
+					if icFunction.ptoControl ~= nil then
+						self:setPTOControl(true, i)
+					end;										
 				end;			
 				if icFunction.canBeTriggered_OFF then
 					if icFunction.animation ~= nil then
 						self:setICAnimation(false, i);
 					end;
+					if icFunction.attacherControl ~= nil then
+						self:setAttacherControl(false, i)
+					end;	
+					if icFunction.ptoControl ~= nil then
+						self:setPTOControl(false, i)
+					end;										
 				end;			
 				i = i+1;
 			end;	
@@ -572,7 +702,7 @@ function simpleIC:checkInteraction()
 				renderText(0.5, 0.5, 0.02, "+");
 			end;
 			
-			-- go through all the animations 
+			-- go through all the functions 
 			local index = 0;
 			for _, icFunction in pairs(spec.icFunctions) do
 				index = index + 1;
@@ -600,58 +730,61 @@ function simpleIC:checkInteraction()
 					icFunction.canBeTriggered_OFF = false;					
 
 					for index , triggerPoint in pairs(triggerPoint) do 
-						-- get world translation of our trigger point, then project it to the screen 
 
+						-- get visibility of our trigger-point, if it is invisible its deactivated 
+						if getVisibility(triggerPoint) then
 
-						local wX, wY, wZ = getWorldTranslation(triggerPoint);
-						local cameraNode = 0;
-						if spec.playerInOutsideInteractionTrigger then
-							cameraNode = g_currentMission.player.cameraNode
-						else
-							cameraNode = self:getActiveCamera().cameraNode
-						end;
-						local cX, cY, cZ = getWorldTranslation(cameraNode);
-						local x, y, z = project(wX, wY, wZ);
-						
-						local dist = MathUtil.vector3Length(wX-cX, wY-cY, wZ-cZ); 
-						
-
-						if x > 0 and y > 0 and z > 0 then
-						
-							-- the higher the number the smaller the text should be to keep it the same size in 3d space 
-							-- base size is 0.025 
-							-- if the number is higher than 1, make smaller
-							-- if the number is smaller than 1, make bigger
-				
-							local size = 0.028 / dist;
-								
-							-- default posX and posY is 0.5 e.g. middle of the screen for selection 
-							local posX, posY, posZ = 0.5, 0.5, 0.5;
-							
-							-- if we have MOUSE_Mode enabled, use mouse position instead 
-							if spec.icTurnedOn_outside then
-								posX, posY, posZ = g_lastMousePosX, g_lastMousePosY, 0;				
+							-- get world translation of our trigger point, then project it to the screen 
+							local wX, wY, wZ = getWorldTranslation(triggerPoint);
+							local cameraNode = 0;
+							if spec.playerInOutsideInteractionTrigger then
+								cameraNode = g_currentMission.player.cameraNode
+							else
+								cameraNode = self:getActiveCamera().cameraNode
 							end;
-
+							local cX, cY, cZ = getWorldTranslation(cameraNode);
+							local x, y, z = project(wX, wY, wZ);
 							
-							-- check if our position is within the position of the triggerRadius
-							if posX < (x + tp.triggerPointRadius) and posX > (x - tp.triggerPointRadius) then
-								if posY < (y + tp.triggerPointRadius) and posY > (y - tp.triggerPointRadius) then
-									if dist < spec.reachDistance or spec.icTurnedOn_outside then
-										-- can be clicked 
-										if index == 1 then -- toggle mark 
-											icFunction.canBeTriggered = true;
-										elseif index == 2 then -- on mark 
-											icFunction.canBeTriggered_ON = true;
-										elseif index == 3 then -- off mark 
-											icFunction.canBeTriggered_OFF = true;
-										end;
-										self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 0, 0)
-									end;
+							local dist = MathUtil.vector3Length(wX-cX, wY-cY, wZ-cZ); 
+							
+
+							if x > 0 and y > 0 and z > 0 then
+							
+								-- the higher the number the smaller the text should be to keep it the same size in 3d space 
+								-- base size is 0.025 
+								-- if the number is higher than 1, make smaller
+								-- if the number is smaller than 1, make bigger
+					
+								local size = 0.028 / dist;
+									
+								-- default posX and posY is 0.5 e.g. middle of the screen for selection 
+								local posX, posY, posZ = 0.5, 0.5, 0.5;
+								
+								-- if we have MOUSE_Mode enabled, use mouse position instead 
+								if spec.icTurnedOn_outside then
+									posX, posY, posZ = g_lastMousePosX, g_lastMousePosY, 0;				
 								end;
-							end;	
-							if (index == 1 and not icFunction.canBeTriggered) or (index == 2 and not icFunction.canBeTriggered_ON) or (index == 3 and not icFunction.canBeTriggered_OFF) then
-								self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 1, 1)
+
+								
+								-- check if our position is within the position of the triggerRadius
+								if posX < (x + tp.triggerPointRadius) and posX > (x - tp.triggerPointRadius) then
+									if posY < (y + tp.triggerPointRadius) and posY > (y - tp.triggerPointRadius) then
+										if dist < spec.reachDistance or spec.icTurnedOn_outside then
+											-- can be clicked 
+											if index == 1 then -- toggle mark 
+												icFunction.canBeTriggered = true;
+											elseif index == 2 then -- on mark 
+												icFunction.canBeTriggered_ON = true;
+											elseif index == 3 then -- off mark 
+												icFunction.canBeTriggered_OFF = true;
+											end;
+											self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 0, 0)
+										end;
+									end;
+								end;	
+								if (index == 1 and not icFunction.canBeTriggered) or (index == 2 and not icFunction.canBeTriggered_ON) or (index == 3 and not icFunction.canBeTriggered_OFF) then
+									self:renderTextAtProjectedPosition(x,y,z, "X", size, 1, 1, 1)
+								end;
 							end;
 						end;
 					end;

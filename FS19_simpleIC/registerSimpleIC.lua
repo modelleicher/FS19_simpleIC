@@ -29,6 +29,12 @@ Changelog
 ## V 0.9.1.3
 - multiplayer fix
 - added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
+## V 0.9.1.4 
+- made icFunctions more universally usable for future additions
+- icFunction can be "turned off" by setting visibility of triggerPoint to false 
+## V 0.9.1.5
+- added attacherControl 
+- added ptoControl 
 
 ]]
 

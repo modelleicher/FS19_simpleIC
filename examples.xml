@@ -74,3 +74,26 @@ The "rotation" axis is the Y axis (green axis)
 		<cylinder node1="doorLeft_strutCyl_left" node2="doorLeft_strutMain_left" />
 	</cylinderAnimations>
 </simpleIC>
+
+## IC function attacherControl:
+-- attacherIndex -> Index of Attacher in XML (same as for powerTakeoffConfigurations, hoses etc.) 
+-- (optional) leverAnimation -> animation to be played for a lever/button, animation is synchronized to lowered/raised state of attacher 
+-- triggerPoints work exactly the same as for animations (see above), so you can do triggerPoint_ON and triggerPoint_OFF for raising/lowering too 
+<simpleIC outsideInteractionTrigger="sic_playerTrigger" >
+	<attacherControl attacherIndex="3" leverAnimation="leverAnimation">
+		<insideTrigger triggerPoint="sic_attacherBack_insideTrigger" triggerPointSize="0.04" />
+		<outsideTrigger triggerPoint="sic_attacherBack_outsideTrigger" triggerPointSize="0.04" />
+	</attacherControl>
+</simpleIC>
+
+
+## IC function ptoControl:
+-- attacherIndex -> Index of Attacher in XML in which the implement needs to be attached for this pto control to control it
+(Everything is the same as with attacherControl)
+<simpleIC outsideInteractionTrigger="sic_playerTrigger" >
+	<ptoControl attacherIndex="1" leverAnimation="leverAnimationPTO" >
+		<insideTrigger triggerPoint="sic_pto_back" triggerPointSize="0.04" />		
+	</ptoControl>
+</simpleIC>
+
+
