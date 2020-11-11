@@ -90,8 +90,10 @@ The "rotation" axis is the Y axis (green axis)
 ## IC function ptoControl:
 -- attacherIndex -> Index of Attacher in XML in which the implement needs to be attached for this pto control to control it
 (Everything is the same as with attacherControl)
+-- (optional) leverAnimation, doNotSynch (optional) set to true if you don't want to synch animation with turning implement on/off with key-binding instead of IC 
 <simpleIC outsideInteractionTrigger="sic_playerTrigger" >
-	<ptoControl attacherIndex="1" leverAnimation="leverAnimationPTO" >
+	<ptoControl attacherIndex="1" >
+		<leverAnimation animationName="leverAnimationPTO" doNotSynch="false" />
 		<insideTrigger triggerPoint="sic_pto_back" triggerPointSize="0.04" />		
 	</ptoControl>
 </simpleIC>

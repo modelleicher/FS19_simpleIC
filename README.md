@@ -2,6 +2,27 @@
  New Interactive Control Script for FS19
  
 # Changelog:
+-- V 0.9.2.6 
+- separated ptoControl into seperate lua
+- synchronized ptoControl animation with turnOnVehicle so its always in synch
+- fixed version numbering mishap (yes this is 0.9.2.6 not 0.9.1.6)
+-- V 0.9.2.5
+- added attacherControl 
+- added ptoControl 
+-- V 0.9.2.4 
+- made icFunctions more universally usable for future additions
+- icFunction can be "turned off" by setting visibility of triggerPoint to false 
+-- V 0.9.2.3
+- MP Server fix of vehicle not enterable
+-- V 0.9.2.2
+- fix for line 102 error I think, couldn't reproduce but I found an issue with the table indexing and I think it worked fine for most mods but some may have caused the issue to show.
+-- V 0.9.2.1
+- possibly fixed dedicated server issue 
+- removed "cylinder" debug finally 
+-- V 0.9.2.0
+- addition of SimpleIC-ImplementBalls
+-- V 0.9.1.9
+- fixed the issue introduced in the version before last version and partially fixed in the last version. Now fixed completely. I hope.. again.
 -- V 0.9.1.8
 - fixed Issue introduced in the last version of indoor buttons only working when the ingame-menu is on, fully removed issue with double-mapping of mouseButtons I hope
 -- V 0.9.1.7
@@ -25,6 +46,7 @@
 How do I test this?
 1. download FS19_simpleIC.zip and add to modfolder
 2. download my Agrostar 6.61 Edit I released for christmas, it already has simpleIC added. https://youtu.be/lsEg6T7XOkE
+(by now there are a lot of SimpleIC ready mods out there already so just find the next best one you like)
 3. go ingame and have fun :D 
 
 # What this is:
@@ -43,6 +65,8 @@ Now for the bad parts
 
 # How to add this to my Mod:
 - I will create videos explaining the process of adding simpleIC to your vehicle. 
+
+- There is an examples.xml explaining all the current possible XML entrys and what they do. If you're not brandnew to modding this should be enough to get going :) 
 
 If you already know modding well, here's a short explanation:
 (look at the linked Deutz Agrostar above to see the full XML lines)

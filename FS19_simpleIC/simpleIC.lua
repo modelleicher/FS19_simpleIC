@@ -58,8 +58,7 @@ function simpleIC:onLoad(savegame)
 	self.loadAttacherControl = simpleIC.loadAttacherControl;	
 	self.loadICFunctions = simpleIC.loadICFunctions;
 	self.setAttacherControl = simpleIC.setAttacherControl;
-	self.loadPTOControl = simpleIC.loadPTOControl;
-	self.setPTOControl = simpleIC.setPTOControl;
+
 
 	self.spec_simpleIC = {};
 	
@@ -178,21 +177,7 @@ function simpleIC:loadICFunctions(keyOrig, loadFunc)
 
 end;
 
-function simpleIC:loadPTOControl(key, table)
-	local ptoControl ={};
-	ptoControl.attacherIndex = getXMLInt(self.xmlFile, key.."#attacherIndex");
-	if ptoControl.attacherIndex ~= nil then
 
-		local leverAnimation = getXMLString(self.xmlFile, key.."#leverAnimation");
-		if leverAnimation ~= "" and leverAnimation ~= nil then
-			ptoControl.leverAnimation = leverAnimation;
-			ptoControl.leverAnimationState = false;
-		end;
-
-		table.ptoControl = ptoControl;
-		return true;
-	end;
-end;
 
 function simpleIC:loadAttacherControl(key, table)
 
@@ -351,28 +336,7 @@ function simpleIC:INTERACT(actionName, inputValue)
 	end;
 end;
 
-function simpleIC:setPTOControl(wantedState, i)
-	local ptoControl = self.spec_simpleIC.icFunctions[i].ptoControl;
 
-	for _, implement in pairs(self.spec_attacherJoints.attachedImplements) do
-		if implement.jointDescIndex == ptoControl.attacherIndex then
-			if implement.object.spec_turnOnVehicle ~= nil then
-				if wantedState == nil then
-					wantedState = not implement.object.spec_turnOnVehicle.isTurnedOn;
-				end;
-				implement.object:setIsTurnedOn(wantedState)
-				if ptoControl.leverAnimation ~= nil and speed ~= 0 then
-					local speed = 1;
-					if not wantedState then
-						speed = -1;
-					end;
-					self:playAnimation(ptoControl.leverAnimation, speed, self:getAnimationTime(ptoControl.leverAnimation), true);
-					ptoControl.leverAnimationState = wantedState;			
-				end;				
-			end;
-		end;
-	end;
-end;
 
 function simpleIC:setAttacherControl(wantedState, i)
 	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;

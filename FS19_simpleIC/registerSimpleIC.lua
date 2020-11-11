@@ -1,5 +1,16 @@
 --[[
 Changelog
+
+## V 0.9.2.6 
+- separated ptoControl into seperate lua
+- synchronized ptoControl animation with turnOnVehicle so its always in synch
+- fixed version numbering mishap (yes this is 0.9.2.6 not 0.9.1.6)
+## V 0.9.2.5
+- added attacherControl 
+- added ptoControl 
+## V 0.9.2.4 
+- made icFunctions more universally usable for future additions
+- icFunction can be "turned off" by setting visibility of triggerPoint to false 
 ## V 0.9.2.3
 - MP Server fix of vehicle not enterable
 ## V 0.9.2.2
@@ -29,19 +40,14 @@ Changelog
 ## V 0.9.1.3
 - multiplayer fix
 - added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
-## V 0.9.1.4 
-- made icFunctions more universally usable for future additions
-- icFunction can be "turned off" by setting visibility of triggerPoint to false 
-## V 0.9.1.5
-- added attacherControl 
-- added ptoControl 
+
 
 ]]
 
 
 registerSimpleIC = {};
 
-registerSimpleIC.version = "0.9.2.2"
+registerSimpleIC.version = "0.9.2.6"
 
 local modName = g_currentModName;
 local modDirectory = g_currentModDirectory;
@@ -58,6 +64,7 @@ end
 
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
+	specializationManager:addSpecialization("sic_ptoControl", "sic_ptoControl", modDirectory.."sic_ptoControl.lua", nil)
 	specializationManager:addSpecialization("simpleIC", "simpleIC", modDirectory.."simpleIC.lua", nil)
 	specializationManager:addSpecialization("simpleIC_implementBalls", "simpleIC_implementBalls", modDirectory.."simpleIC_implementBalls.lua", nil)
 		
@@ -67,6 +74,7 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
 			-- add simpleIC to everything except locomotives 
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
+				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_ptoControl")
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".simpleIC")
 				print("inserted simpleIC to "..tostring(typeName));
 				if SpecializationUtil.hasSpecialization(Attachable, typeEntry.specializations) then
