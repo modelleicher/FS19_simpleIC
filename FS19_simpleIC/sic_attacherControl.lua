@@ -12,8 +12,8 @@ function sic_attacherControl.registerEventListeners(vehicleType)
     SpecializationUtil.registerEventListener(vehicleType, "onPostLoad", sic_attacherControl);
     SpecializationUtil.registerEventListener(vehicleType, "onUpdateTick", sic_attacherControl);
 
-    SpecializationUtil.registerEventListener(vehicleType, "onPostAttachImplement", sic_attacherControl);    
-    SpecializationUtil.registerEventListener(vehicleType, "onPreDetachImplement", sic_attacherControl);    
+    --SpecializationUtil.registerEventListener(vehicleType, "onPreAttachImplement", sic_attacherControl);    
+    --SpecializationUtil.registerEventListener(vehicleType, "onPreDetachImplement", sic_attacherControl);    
 end;
 
 function sic_attacherControl:onPreDetachImplement(implement)
@@ -38,12 +38,14 @@ function sic_attacherControl:onPreDetachImplement(implement)
     end;
 end;
 
-function sic_attacherControl:onPostAttachImplement(inputJointDescIndex, jointDescIndex)
+function sic_attacherControl:onPreAttachImplement(inputJointDescIndex, jointDescIndex)
+
+	local jointDesc = self.spec_attacherJoints.attacherJoints[jointDescIndex]
 
     for _ , icFunction in pairs(self.spec_simpleIC.icFunctions) do
         if icFunction.attacherControl ~= nil and icFunction.attacherControl.attacherIndex == jointDescIndex then
             icFunction.attacherControl.isImplementAttached = true;
-            
+
             if icFunction.leverAnimation ~= nil then
                 local leverAnimation = icFunction.leverAnimation;
         
@@ -171,13 +173,15 @@ end;
 function sic_attacherControl:setAttacherControl(wantedState, i)
     -- gets called when IC trigger is triggered
 	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;
-	local spec_attacherJoints = self.spec_attacherJoints;
-
-	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil and attacherControl.isImplementAttached then
+    local spec_attacherJoints = self.spec_attacherJoints;
+    
+    print(tostring(attacherControl.isImplementAttached))
+    print(tostring(spec_attacherJoints.attacherJoints[attacherControl.attacherIndex]))
+	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil then
 		if wantedState == nil then
 			wantedState = not spec_attacherJoints.attacherJoints[attacherControl.attacherIndex].moveDown
-		end;
-
+        end;
+    
 		self:setJointMoveDown(attacherControl.attacherIndex, wantedState)
 
         if attacherControl.leverAnimation ~= nil and attacherControl.leverAnimation.doNotSynch then
@@ -194,7 +198,6 @@ end;
 function sic_attacherControl.setJointMoveDownAppend(self, superFunc, jointDescIndex, moveDown, noEventSend)
 
     superFunc(self, jointDescIndex, moveDown, noEventSend);
-
 
     -- code for running animation if attacher is raised/lowered
     if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then

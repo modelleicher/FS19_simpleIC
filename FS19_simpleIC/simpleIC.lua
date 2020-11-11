@@ -66,13 +66,16 @@ function simpleIC:onLoad(savegame)
 	spec.icFunctions = {};
 	
 	-- load the animations from XML 
-	self:loadICFunctions("vehicle.simpleIC.animation", self.loadAnimation)
+	self:loadICFunctions("vehicle.simpleIC.animation", self.loadAnimation);
 
 	-- load attacherControl 
-	self:loadICFunctions("vehicle.simpleIC.attacherControl", self.loadAttacherControl)
+	self:loadICFunctions("vehicle.simpleIC.attacherControl", self.loadAttacherControl);
 
 	-- load pto control 
-	self:loadICFunctions("vehicle.simpleIC.ptoControl", self.loadPTOControl)
+	self:loadICFunctions("vehicle.simpleIC.ptoControl", self.loadPTOControl);
+
+	-- load light control
+	self:loadICFunctions("vehicle.simpleIC.lightControl", self.loadLightControl);
 
 	
 	if #spec.icFunctions > 0 then
@@ -326,6 +329,10 @@ function simpleIC:doInteraction()
 					if icFunction.ptoControl ~= nil then
 						self:setPTOControl(nil, i)
 					end;
+
+					if icFunction.lightControl ~= nil then
+						self:setLightControl(nil, i)
+					end;
 				end;
 				if icFunction.canBeTriggered_ON then
 					if icFunction.animation ~= nil then
@@ -336,7 +343,10 @@ function simpleIC:doInteraction()
 					end;
 					if icFunction.ptoControl ~= nil then
 						self:setPTOControl(true, i)
-					end;										
+					end;
+					if icFunction.lightControl ~= nil then
+						self:setLightControl(true, i)
+					end;															
 				end;			
 				if icFunction.canBeTriggered_OFF then
 					if icFunction.animation ~= nil then
@@ -347,7 +357,10 @@ function simpleIC:doInteraction()
 					end;	
 					if icFunction.ptoControl ~= nil then
 						self:setPTOControl(false, i)
-					end;										
+					end;
+					if icFunction.lightControl ~= nil then
+						self:setLightControl(false, i)
+					end;															
 				end;			
 				i = i+1;
 			end;	

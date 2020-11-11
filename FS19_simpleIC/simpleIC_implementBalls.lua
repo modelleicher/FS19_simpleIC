@@ -99,19 +99,21 @@ end;
 
 function simpleIC_implementBalls:setImplementBalls(index, forceState, noEventSend)
     local spec = self.spec_implementBalls;
-    spec.implementJoints[index].showBalls = Utils.getNoNil(forceState, not spec.implementJoints[index].showBalls);
-    setICImplementBallsEvent.sendEvent(self, spec.implementJoints[index].showBalls, index, noEventSend);
+    if spec.implementJoints[index] ~= nil then
+        spec.implementJoints[index].showBalls = Utils.getNoNil(forceState, not spec.implementJoints[index].showBalls);
+        setICImplementBallsEvent.sendEvent(self, spec.implementJoints[index].showBalls, index, noEventSend);
 
-    if spec.implementJoints[index].showBalls then
-        link(spec.implementJoints[index].node, spec.leftNode)
-        link(spec.implementJoints[index].node, spec.rightNode)
-        setTranslation(spec.leftNode, 0, 0, -0.432)
-        setTranslation(spec.rightNode, 0, 0, 0.432)
-        setRotation(spec.leftNode, 0, math.rad(90), 0)
-        setRotation(spec.rightNode, 0, math.rad(90), 0)
-    else
-        unlink(spec.leftNode)
-        unlink(spec.rightNode)
+        if spec.implementJoints[index].showBalls then
+            link(spec.implementJoints[index].node, spec.leftNode)
+            link(spec.implementJoints[index].node, spec.rightNode)
+            setTranslation(spec.leftNode, 0, 0, -0.432)
+            setTranslation(spec.rightNode, 0, 0, 0.432)
+            setRotation(spec.leftNode, 0, math.rad(90), 0)
+            setRotation(spec.rightNode, 0, math.rad(90), 0)
+        else
+            unlink(spec.leftNode)
+            unlink(spec.rightNode)
+        end;
     end;
 end;
 

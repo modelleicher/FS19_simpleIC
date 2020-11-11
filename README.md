@@ -3,6 +3,9 @@
  
 # Changelog:
 
+###### V 0.9.2.9
+- implementBalls synch Issue possible fix 
+- lightControl addition (leverAnimations still to do)
 ###### V 0.9.2.8
 - some bugfixes for the recent additions
 ###### V 0.9.2.7
