@@ -9,13 +9,76 @@ end;
 
 function sic_attacherControl.registerEventListeners(vehicleType)	
     SpecializationUtil.registerEventListener(vehicleType, "onLoad", sic_attacherControl);
+    SpecializationUtil.registerEventListener(vehicleType, "onPostLoad", sic_attacherControl);
     SpecializationUtil.registerEventListener(vehicleType, "onUpdateTick", sic_attacherControl);
+
+    SpecializationUtil.registerEventListener(vehicleType, "onPostAttachImplement", sic_attacherControl);    
+    SpecializationUtil.registerEventListener(vehicleType, "onPreDetachImplement", sic_attacherControl);    
 end;
 
+function sic_attacherControl:onPreDetachImplement(implement)
+    for _ , icFunction in pairs(self.spec_simpleIC.icFunctions) do
+        if icFunction.attacherControl ~= nil and icFunction.attacherControl.attacherIndex == implement.jointDescIndex then
+            icFunction.attacherControl.isImplementAttached = false;
+
+            if icFunction.leverAnimation ~= nil then
+                local leverAnimation = icFunction.leverAnimation;
+        
+                local animTime = self:getAnimationTime(leverAnimation.animationName);
+        
+                if animTime > leverAnimation.detachedAnimTime then
+                    self:playAnimation(leverAnimation.animationName, -1, animTime, true);
+                    self:setAnimationStopTime(leverAnimation.animationName, leverAnimation.detachedAnimTime);
+                elseif animTime < leverAnimation.detachedAnimTime then
+                    self:playAnimation(leverAnimation.animationName, 1, animTime, true);
+                    self:setAnimationStopTime(leverAnimation.animationName, leverAnimation.detachedAnimTime);           
+                end;
+            end;      
+        end;
+    end;
+end;
+
+function sic_attacherControl:onPostAttachImplement(inputJointDescIndex, jointDescIndex)
+
+    for _ , icFunction in pairs(self.spec_simpleIC.icFunctions) do
+        if icFunction.attacherControl ~= nil and icFunction.attacherControl.attacherIndex == jointDescIndex then
+            icFunction.attacherControl.isImplementAttached = true;
+            
+            if icFunction.leverAnimation ~= nil then
+                local leverAnimation = icFunction.leverAnimation;
+        
+                local animTime = self:getAnimationTime(leverAnimation.animationName);
+                self:playAnimation(leverAnimation.animationName, -1, animTime, true);
+            end;                  
+        end;
+    end;
+
+end;
 
 function sic_attacherControl:onLoad(savegame)
 	self.loadAttacherControl = sic_attacherControl.loadAttacherControl;
-	self.setAttacherControl = sic_attacherControl.setAttacherControl;
+    self.setAttacherControl = sic_attacherControl.setAttacherControl;
+
+    self.sic_attacherControl = {};
+
+    self.sic_attacherControl.attacherIndexToICFunction = {};
+    
+end;
+
+function sic_attacherControl:onPostLoad(savegame)
+    for _ , icFunction in pairs(self.spec_simpleIC.icFunctions) do
+        if icFunction.attacherControl and icFunction.attacherControl.leverAnimation ~= nil and not icFunction.attacherControl.isImplementAttached then
+            local leverAnimation = icFunction.attacherControl.leverAnimation;
+            local animTime = self:getAnimationTime(leverAnimation.animationName);
+            if animTime > leverAnimation.detachedAnimTime then
+                self:playAnimation(leverAnimation.animationName, -1, animTime, true);
+                self:setAnimationStopTime(leverAnimation.animationName, leverAnimation.detachedAnimTime);
+            elseif animTime < leverAnimation.detachedAnimTime then
+                self:playAnimation(leverAnimation.animationName, 1, animTime, true);
+                self:setAnimationStopTime(leverAnimation.animationName, leverAnimation.detachedAnimTime);           
+            end;          
+        end;
+    end;
 end;
 
 
@@ -28,44 +91,50 @@ function sic_attacherControl:onUpdateTick(dt)
                 if icFunction.attacherControl.attacherIndex ~= nil then
                     local jointDesc = self.spec_attacherJoints.attacherJoints[icFunction.attacherControl.attacherIndex]
 
-                    local moveAlpha = Utils.getMovedLimitedValue(jointDesc.moveAlpha, jointDesc.lowerAlpha, jointDesc.upperAlpha, jointDesc.moveTime, dt, not jointDesc.moveDown)
+                    if jointDesc.moveAlpha ~= nil then
+                    
+                        local moveAlpha = Utils.getMovedLimitedValue(jointDesc.moveAlpha, jointDesc.lowerAlpha, jointDesc.upperAlpha, jointDesc.moveTime, dt, not jointDesc.moveDown)
 
-                    local leverAnimation = icFunction.attacherControl.leverAnimation;
+                        local leverAnimation = icFunction.attacherControl.leverAnimation;
 
-                    if moveAlpha ~= leverAnimation.moveAlpha then
-                        if (moveAlpha == 1 or moveAlpha == 0) and leverAnimation.returnToCenter then
+                        if moveAlpha ~= leverAnimation.moveAlpha then
+                            if (moveAlpha == 1 or moveAlpha == 0) and leverAnimation.returnToCenter then
 
-                            local animTime = self:getAnimationTime(leverAnimation.animationName);
-                            if animTime > 0.5 then
-                                self:playAnimation(leverAnimation.animationName, -1, animTime, true);
-                                self:setAnimationStopTime(leverAnimation.animationName, 0.5)
-                            elseif animTime < 0.5 then
-                                self:playAnimation(leverAnimation.animationName, 1, animTime, true);
-                                self:setAnimationStopTime(leverAnimation.animationName, 0.5)                               
+                                local animTime = self:getAnimationTime(leverAnimation.animationName);
+                                if animTime > 0.5 then
+                                    self:playAnimation(leverAnimation.animationName, -1, animTime, true);
+                                    self:setAnimationStopTime(leverAnimation.animationName, 0.5)
+                                elseif animTime < 0.5 then
+                                    self:playAnimation(leverAnimation.animationName, 1, animTime, true);
+                                    self:setAnimationStopTime(leverAnimation.animationName, 0.5)                               
+                                end;
+
+                            elseif moveAlpha == 0 and leverAnimation.returnToCenterRaised then
+                                local animTime = self:getAnimationTime(leverAnimation.animationName);
+
+                                if animTime < 0.5 then
+                                    self:playAnimation(leverAnimation.animationName, 1, animTime, true);
+                                    self:setAnimationStopTime(leverAnimation.animationName, 0.5)
+                                end;
+                            elseif moveAlpha == 1 and leverAnimation.returnToCenterLowered then
+                                local animTime = self:getAnimationTime(leverAnimation.animationName);
+
+                                if animTime > 0.5 then
+                                    self:playAnimation(leverAnimation.animationName, -1, animTime, true);
+                                    self:setAnimationStopTime(leverAnimation.animationName, 0.5)
+                                end;
                             end;
-
-                        elseif moveAlpha == 0 and leverAnimation.returnToCenterRaised then
-                            local animTime = self:getAnimationTime(leverAnimation.animationName);
-
-                            if animTime < 0.5 then
-                                self:playAnimation(leverAnimation.animationName, 1, animTime, true);
-                                self:setAnimationStopTime(leverAnimation.animationName, 0.5)
-                            end;
-                        elseif moveAlpha == 1 and leverAnimation.returnToCenterLowered then
-                            local animTime = self:getAnimationTime(leverAnimation.animationName);
-
-                            if animTime > 0.5 then
-                                self:playAnimation(leverAnimation.animationName, -1, animTime, true);
-                                self:setAnimationStopTime(leverAnimation.animationName, 0.5)
-                            end;
+                            leverAnimation.moveAlpha = moveAlpha;
                         end;
-                        leverAnimation.moveAlpha = moveAlpha;
                     end;
                 end;
             end;
         end;
     end;
 end;
+
+
+
 
 
 function sic_attacherControl:loadAttacherControl(key, table)
@@ -85,9 +154,13 @@ function sic_attacherControl:loadAttacherControl(key, table)
             attacherControl.leverAnimation.returnToCenterRaised = getXMLBool(self.xmlFile, key..".leverAnimation#returnToCenterRaised");
             attacherControl.leverAnimation.returnToCenterLowered = getXMLBool(self.xmlFile, key.."leverAnimation#returnToCenterLowered");
 
+            attacherControl.leverAnimation.detachedAnimTime = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".leverAnimation#detachedAnimTime"), 1);
+
             attacherControl.leverAnimation.moveAlpha = 0.5;
 
         end;
+
+        self.sic_attacherControl.attacherIndexToICFunction[attacherControl.attacherIndex] = table;
         
 		table.attacherControl = attacherControl;
 		return true;
@@ -100,15 +173,14 @@ function sic_attacherControl:setAttacherControl(wantedState, i)
 	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;
 	local spec_attacherJoints = self.spec_attacherJoints;
 
-	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil then
-
+	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil and attacherControl.isImplementAttached then
 		if wantedState == nil then
 			wantedState = not spec_attacherJoints.attacherJoints[attacherControl.attacherIndex].moveDown
 		end;
 
 		self:setJointMoveDown(attacherControl.attacherIndex, wantedState)
 
-		if attacherControl.leverAnimation ~= nil and attacherControl.leverAnimation.doNotSynch then
+        if attacherControl.leverAnimation ~= nil and attacherControl.leverAnimation.doNotSynch then
 			local speed = 1;
 			if not wantedState then
 				speed = -1;
@@ -122,6 +194,7 @@ end;
 function sic_attacherControl.setJointMoveDownAppend(self, superFunc, jointDescIndex, moveDown, noEventSend)
 
     superFunc(self, jointDescIndex, moveDown, noEventSend);
+
 
     -- code for running animation if attacher is raised/lowered
     if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then

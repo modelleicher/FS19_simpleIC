@@ -3,6 +3,8 @@
  
 # Changelog:
 
+###### V 0.9.2.8
+- some bugfixes for the recent additions
 ###### V 0.9.2.7
 - separated attacherControl into seperate lua
 - synchronized attacherControl with setJointMoveDown so its always in synch
