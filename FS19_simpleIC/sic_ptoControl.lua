@@ -57,6 +57,15 @@ function sic_ptoControl:setPTOControl(wantedState, i)
                     end;
                     -- apply state 
                     implement.object:setIsTurnedOn(wantedState)
+
+                    -- run animation if doNotSynch is true, otherwise animation will be run by setIsTurnedOn Append function
+                    if ptoControl.leverAnimation ~= nil and ptoControl.leverAnimation.doNotSynch then
+                        local speed = 1;
+                        if not wantedState then
+                            speed = -1;
+                        end;
+                        self:playAnimation(ptoControl.leverAnimation.animationName, speed, self:getAnimationTime(ptoControl.leverAnimation.animationName), true);	
+                    end;
                 end;
             end;
         end;

@@ -2,43 +2,49 @@
  New Interactive Control Script for FS19
  
 # Changelog:
--- V 0.9.2.6 
+
+###### V 0.9.2.7
+- separated attacherControl into seperate lua
+- synchronized attacherControl with setJointMoveDown so its always in synch
+- fixed doNotSynch for ptoControl
+- added returnToCenter, returnToCenterRaised, returnToCenterLowered for attacherControl leverAnimation
+###### V 0.9.2.6 
 - separated ptoControl into seperate lua
 - synchronized ptoControl animation with turnOnVehicle so its always in synch
 - fixed version numbering mishap (yes this is 0.9.2.6 not 0.9.1.6)
--- V 0.9.2.5
+###### V 0.9.2.5
 - added attacherControl 
 - added ptoControl 
--- V 0.9.2.4 
+###### V 0.9.2.4 
 - made icFunctions more universally usable for future additions
 - icFunction can be "turned off" by setting visibility of triggerPoint to false 
--- V 0.9.2.3
+###### V 0.9.2.3
 - MP Server fix of vehicle not enterable
--- V 0.9.2.2
+###### V 0.9.2.2
 - fix for line 102 error I think, couldn't reproduce but I found an issue with the table indexing and I think it worked fine for most mods but some may have caused the issue to show.
--- V 0.9.2.1
+###### V 0.9.2.1
 - possibly fixed dedicated server issue 
 - removed "cylinder" debug finally 
--- V 0.9.2.0
+###### V 0.9.2.0
 - addition of SimpleIC-ImplementBalls
--- V 0.9.1.9
+###### V 0.9.1.9
 - fixed the issue introduced in the version before last version and partially fixed in the last version. Now fixed completely. I hope.. again.
--- V 0.9.1.8
+###### V 0.9.1.8
 - fixed Issue introduced in the last version of indoor buttons only working when the ingame-menu is on, fully removed issue with double-mapping of mouseButtons I hope
--- V 0.9.1.7
+###### V 0.9.1.7
 - fixed Error: simpleIC.lua:488: attempt to index field 'spec_motorized' (a nil value)
 - fixed Error: simpleIC.lua:318: attempt to call method 'getAttacherVehicle' (a nil value)
 - reachDistance can be set per vehicle (optional, default 1.8) to specify how far away a player can reach an IC-point
--- V 0.9.1.6
+###### V 0.9.1.6
 - fixed spec insertion so simpleIC now works in every implement, trailer etc. not just drivables
--- V 0.9.1.5
+###### V 0.9.1.5
 - fixed Error: simpleIC.lua:248: attempt to index local 'spec' (a nil value)
 - added cylinderAnimation for easy animation of struts on windows/doors etc.
--- V 0.9.1.4
+###### V 0.9.1.4
 - fixed IC active on all vehicles bug (now only active if vehicle actually has IC functions)
 - fixed bug Error: Running LUA method 'update' simpleIC.lua:292: attempt to index a nil value
 - added default keymapping
--- V 0.9.1.3
+###### V 0.9.1.3
 - multiplayer fix
 - added triggerPoint_ON and triggerPoint_OFF as alternative to toggle via triggerPoint 
  

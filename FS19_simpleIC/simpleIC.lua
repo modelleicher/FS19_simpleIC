@@ -54,10 +54,8 @@ function simpleIC:onLoad(savegame)
 	self.resetCanBeTriggered = simpleIC.resetCanBeTriggered;
 	self.doInteraction = simpleIC.doInteraction;
 	self.isCameraInsideCheck = simpleIC.isCameraInsideCheck;
-	self.loadAnimation = simpleIC.loadAnimation;
-	self.loadAttacherControl = simpleIC.loadAttacherControl;	
+	self.loadAnimation = simpleIC.loadAnimation;	
 	self.loadICFunctions = simpleIC.loadICFunctions;
-	self.setAttacherControl = simpleIC.setAttacherControl;
 
 
 	self.spec_simpleIC = {};
@@ -179,23 +177,7 @@ end;
 
 
 
-function simpleIC:loadAttacherControl(key, table)
 
-	local attacherControl = {}
-	attacherControl.attacherIndex = getXMLInt(self.xmlFile, key.."#attacherIndex");
-	if attacherControl.attacherIndex ~= nil then
-
-		local leverAnimation = getXMLString(self.xmlFile, key.."#leverAnimation");
-		if leverAnimation ~= "" and leverAnimation ~= nil then
-			attacherControl.leverAnimation = leverAnimation;
-			attacherControl.leverAnimationState = false;
-		end;
-
-		table.attacherControl = attacherControl;
-		return true;
-	end;
-
-end;
 
 function simpleIC:loadAnimation(key, table)
 
@@ -255,20 +237,6 @@ function simpleIC:onPostLoad(savegame)
 				end;
 			end;
 
-			if icFunction.attacherControl ~= nil then
-				if icFunction.attacherControl.leverAnimation ~= nil then
-					if self.spec_attacherJoints.attacherJoints[icFunction.attacherControl.attacherIndex] ~= nil then
-						local wantedState = self.spec_attacherJoints.attacherJoints[icFunction.attacherControl.attacherIndex].moveDown
-						local speed = 1;
-						if not wantedState then
-							speed = -1;
-						end;
-						self:playAnimation(icFunction.attacherControl.leverAnimation, speed, self:getAnimationTime(icFunction.attacherControl.leverAnimation), true);
-						icFunction.attacherControl.leverAnimationState = wantedState;	
-					end;
-				end;
-			end;
-			
 			i = i+1;
 		end;
 	end;
@@ -336,31 +304,6 @@ function simpleIC:INTERACT(actionName, inputValue)
 	end;
 end;
 
-
-
-function simpleIC:setAttacherControl(wantedState, i)
-	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;
-	local spec_attacherJoints = self.spec_attacherJoints;
-
-	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil then
-
-		if wantedState == nil then
-			wantedState = not spec_attacherJoints.attacherJoints[attacherControl.attacherIndex].moveDown
-		end;
-
-		self:setJointMoveDown(attacherControl.attacherIndex, wantedState)
-
-		if attacherControl.leverAnimation ~= nil and speed ~= 0 then
-			local speed = 1;
-			if not wantedState then
-				speed = -1;
-			end;
-			self:playAnimation(attacherControl.leverAnimation, speed, self:getAnimationTime(attacherControl.leverAnimation), true);
-			attacherControl.leverAnimationState = wantedState;			
-		end;
-
-	end;
-end;
 
 		
 function simpleIC:doInteraction()

@@ -78,9 +78,16 @@ The "rotation" axis is the Y axis (green axis)
 ## IC function attacherControl:
 -- attacherIndex -> Index of Attacher in XML (same as for powerTakeoffConfigurations, hoses etc.) 
 -- (optional) leverAnimation -> animation to be played for a lever/button, animation is synchronized to lowered/raised state of attacher 
+			-- animationName -> name of animation for leverAnimation
+			-- (optional) doNotSynch -> don't synch lever animation to inputs with key-binding instead of simpleIC. Not sure why you'd want that but its there if you need it 
+			-- (optional) returnToCenter -> lever will return to center of its animation when implement is finished raising or lowering 
+			-- (optional) returnToCenterRaised -> lever will return to center of its animation when implement is raised only
+			-- (optional) returnToCenterLowered -> lever will return to center of its animation when implement is lowered only 
+			! of course only one, either returnToCenter or returnToCenterLowered or returnToCenterRaised should be true anything else doesn't make sense and might not return the expected result !
 -- triggerPoints work exactly the same as for animations (see above), so you can do triggerPoint_ON and triggerPoint_OFF for raising/lowering too 
 <simpleIC outsideInteractionTrigger="sic_playerTrigger" >
-	<attacherControl attacherIndex="3" leverAnimation="leverAnimation">
+	<attacherControl attacherIndex="3" >
+		<leverAnimation animationName="leverAnimationPTO" doNotSynch="false" returnToCenter="true" returnToCenterRaised="true" returnToCenterLowered="true" />
 		<insideTrigger triggerPoint="sic_attacherBack_insideTrigger" triggerPointSize="0.04" />
 		<outsideTrigger triggerPoint="sic_attacherBack_outsideTrigger" triggerPointSize="0.04" />
 	</attacherControl>

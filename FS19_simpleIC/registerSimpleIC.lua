@@ -1,6 +1,11 @@
 --[[
 Changelog
 
+## V 0.9.2.7
+- separated attacherControl into seperate lua
+- synchronized attacherControl with setJointMoveDown so its always in synch
+- fixed doNotSynch for ptoControl
+- added returnToCenter, returnToCenterRaised, returnToCenterLowered for attacherControl leverAnimation
 ## V 0.9.2.6 
 - separated ptoControl into seperate lua
 - synchronized ptoControl animation with turnOnVehicle so its always in synch
@@ -64,6 +69,7 @@ end
 
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
+	specializationManager:addSpecialization("sic_attacherControl", "sic_attacherControl", modDirectory.."sic_attacherControl.lua", nil)	
 	specializationManager:addSpecialization("sic_ptoControl", "sic_ptoControl", modDirectory.."sic_ptoControl.lua", nil)
 	specializationManager:addSpecialization("simpleIC", "simpleIC", modDirectory.."simpleIC.lua", nil)
 	specializationManager:addSpecialization("simpleIC_implementBalls", "simpleIC_implementBalls", modDirectory.."simpleIC_implementBalls.lua", nil)
@@ -74,6 +80,7 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
 			-- add simpleIC to everything except locomotives 
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
+				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_attacherControl")				
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_ptoControl")
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".simpleIC")
 				print("inserted simpleIC to "..tostring(typeName));
