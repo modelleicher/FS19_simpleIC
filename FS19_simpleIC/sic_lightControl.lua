@@ -14,7 +14,8 @@ end;
 
 function sic_lightControl:onLoad(savegame)
 	self.loadLightControl = sic_lightControl.loadLightControl;
-	self.setLightControl = sic_lightControl.setLightControl;
+    self.setLightControl = sic_lightControl.setLightControl;
+    self.getBinaryFromDecimal = sic_lightControl.getBinaryFromDecimal;
 end;
 
 
@@ -32,8 +33,18 @@ function sic_lightControl:loadLightControl(key, table)
             lightControl.leverAnimation = {};
             lightControl.leverAnimation.animationName = animationName;
             --lightControl.leverAnimation.doNotSynch = getXMLBool(self.xmlFile, key..".leverAnimation#doNotSynch");
-            lightControl.leverAnimation.onTime = Utils.getNoNil(getXMLBool(self.xmlFile, key..".leverAnimation#onTime"), 1);
-            lightControl.leverAnimation.offTime = Utils.getNoNil(getXMLFloat(self.xmlFile, key..".leverAnimation#offTime"), 0);
+            lightControl.leverAnimation.isTurnlightSharedAnimation = getXMLBool(self.xmlFile, key..".leverAnimation#isTurnlightSharedAnimation")
+
+            if lightControl.type == "toggle" then
+                lightControl.leverAnimation.animStops = {};
+                for i = 1, self.spec_lights.numLightTypes do
+                    local animStop = getXMLFloat(self.xmlFile, key..".leverAnimation#animStopLightTypes"..i-1);
+                    if animStop ~= nil then
+                        lightControl.leverAnimation.animStops[i] = animStop;
+                    end;
+                end;
+            end;
+
         end;
 
         table.lightControl = lightControl;
@@ -56,7 +67,7 @@ function sic_lightControl:setLightControl(wantedState, i)
             for i=1, #lightControl.lightTypes do
                 lightsTypesMask = bitXOR(spec.lightsTypesMask, 2^lightControl.lightTypes[i]);
             end;
-            print(tostring(lightsTypesMask))
+            --print(tostring(lightsTypesMask))
             self:setLightsTypesMask(lightsTypesMask);
 
         elseif lightControl.type == "toggle" then
@@ -113,48 +124,159 @@ function sic_lightControl:setLightControl(wantedState, i)
 end;
 
 
+function sic_lightControl:getBinaryFromDecimal(decimal)
+    local quot = decimal;
+    local binary = {};
+    local i = 1;
+    while quot ~= 0 do
+        local remainder = math.fmod(quot, 2);
+        quot = math.floor(quot / 2);
+        binary[i] = remainder;
+        i = i+1;
+    end;
+    return binary;
+end;
+
+function sic_lightControl.setLightsTypesMaskAppend(self, superFunc, lightsTypesMask, force, noEventSend)
+    superFunc(self, lightsTypesMask, force, noEventSend);
+    local spec = self.spec_lights;
+
+    if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
+        for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do   
+            if icFunction.lightControl ~= nil and icFunction.lightControl.leverAnimation ~= nil then
+                local lightControl = icFunction.lightControl;
+                local binary = self:getBinaryFromDecimal(lightsTypesMask);
+                
+                if lightControl.type == "state" and #lightControl.lightTypes ~= 0 then
+                    local isOn = false;
+                    for i=1, #lightControl.lightTypes do
+                        if binary[lightControl.lightTypes[i]+1] ~= nil and binary[lightControl.lightTypes[i]+1] ~= 0 then
+                            --print("lightTypes("..i.."): "..tostring(lightControl.lightTypes[i]))
+                            --print("binary Index: "..tostring(binary[lightControl.lightTypes[i]]+1))
+                            isOn = true;
+                        end;
+                    end;
+                    if isOn then
+                        self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                    else
+                        self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                    end;
+                end;
+
+                if lightControl.type == "toggle" then
+                    if #binary > 0 then
+
+                        local wantedStopTime = 0;
+
+                        for i = 1, spec.numLightTypes do
+                            if binary[i] ~= nil and binary[i] ~= 0 then
+                                if lightControl.leverAnimation.animStops[i] ~= nil then
+                                    wantedStopTime = lightControl.leverAnimation.animStops[i];
+                                end;
+                            end;
+                        end;
+
+                        if wantedStopTime ~= 0 then
+                            local animTime = self:getAnimationTime(lightControl.leverAnimation.animationName)
+                            if animTime > wantedStopTime then
+                                self:playAnimation(lightControl.leverAnimation.animationName, -1, animTime, true);
+                                self:setAnimationStopTime(lightControl.leverAnimation.animationName, wantedStopTime);
+                            elseif animTime < wantedStopTime then
+                                self:playAnimation(lightControl.leverAnimation.animationName, 1, animTime, true);
+                                self:setAnimationStopTime(lightControl.leverAnimation.animationName, wantedStopTime);
+                            end;
+                        end;
+                    else
+                        self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+end;
+Lights.setLightsTypesMask = Utils.overwrittenFunction(Lights.setLightsTypesMask, sic_lightControl.setLightsTypesMaskAppend);
+
+
+-- beaconlights animation
+function sic_lightControl.setBeaconLightsVisibilityAppend(self, superFunc, visibility, force, noEventSend)
+    superFunc(self, visibility, force, noEventSend);
+
+    if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
+        for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
+            if icFunction.lightControl ~= nil and icFunction.lightControl.leverAnimation ~= nil then
+                if icFunction.lightControl.type == "beaconLights" then
+                    if visibility then
+                        self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                    else
+                        self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+Lights.setBeaconLightsVisibility = Utils.overwrittenFunction(Lights.setBeaconLightsVisibility, sic_lightControl.setBeaconLightsVisibilityAppend);
+
+
+-- Turnlight Animations
 function sic_lightControl.setTurnLightStateAppend(self, superFunc, state, force, noEventSend)
     superFunc(self, state, foce, noEventSend);
 
     if self.spec_simpleIC ~= nil and self.spec_simpleIC.hasIC then
         for _, icFunction in pairs(self.spec_simpleIC.icFunctions) do
             if icFunction.lightControl ~= nil and icFunction.lightControl.leverAnimation ~= nil then
-                print("has lever animation")
                 local lightControl = icFunction.lightControl;
 
-                if lightControl.type == "turnLightLeft" or lightControl.type == "turnLightRight" then
+                local isSharedAnim = lightControl.leverAnimation.isTurnlightSharedAnimation;
 
-                    if state == Lights.TURNLIGHT_LEFT or state == Lights.TURNLIGHT_RIGHT then
-                        local speed = 1;
-                        if lightControl.leverAnimation.onTime == 0 then
-                            speed = -1;
-                        end;
-                        self:playAnimation(lightControl.leverAnimation.animationName, speed, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                -- animation is shared for left and right turnlight 
+                if isSharedAnim then
+                    if lightControl.type == "turnLightLeft" then
+                        if state == Lights.TURNLIGHT_LEFT then
+                            self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        elseif state == Lights.TURNLIGHT_OFF then
+                            local animTime = self:getAnimationTime(lightControl.leverAnimation.animationName);
+                            if animTime > 0.5 then
+                                self:playAnimation(lightControl.leverAnimation.animationName, -1, animTime, true);
+                                self:setAnimationStopTime(lightControl.leverAnimation.animationName, 0.5); 
+                            end;           
+                        end;              
                     end;
-                    if state == Lights.TURNLIGHT_OFF then
-                        local speed = 1;
-                        local animTime = self:getAnimationTime(lightControl.leverAnimation.animationName);
-                        if animTime > lightControl.leverAnimation.offTime then
-                            speed = -1;
-                        end;
-                        self:playAnimation(lightControl.leverAnimation.animationName, speed, animTime, true);
-                        self:setAnimationStopTime(lightControl.leverAnimation.animationName, lightControl.leverAnimation.offTime);
+                    if lightControl.type == "turnLightRight" then
+                        if state == Lights.TURNLIGHT_RIGHT then
+                            self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        elseif state == Lights.TURNLIGHT_OFF then
+                            local animTime = self:getAnimationTime(lightControl.leverAnimation.animationName);
+                            if animTime < 0.5 then
+                                self:playAnimation(lightControl.leverAnimation.animationName, 1, animTime, true);
+                                self:setAnimationStopTime(lightControl.leverAnimation.animationName, 0.5); 
+                            end;              
+                        end;              
                     end;
+                else -- if animation isn't shared animate normally and independently
+                    if lightControl.type == "turnLightLeft" then
+                        if state == Lights.TURNLIGHT_LEFT then
+                            self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        elseif state == Lights.TURNLIGHT_OFF then
+                            self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        end;
+                    end;
+                    if lightControl.type == "turnLightRight" then
+                        if state == Lights.TURNLIGHT_RIGHT then
+                            self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        elseif state == Lights.TURNLIGHT_OFF then
+                            self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        end;
+                    end;                  
                 end;
+                
+                -- hazards animation is independent
                 if lightControl.type == "turnLightHazard" then
                     if state == Lights.TURNLIGHT_HAZARD then
-                        local speed = -1;
-                        if lightControl.leverAnimation.onTime == 0 then
-                            speed = 1;
-                        end;
-                        self:playAnimation(lightControl.leverAnimation.animationName, speed, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
+                        self:playAnimation(lightControl.leverAnimation.animationName, 1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
                     elseif state == Lights.TURNLIGHT_OFF then
-                        local speed = -1;
-                        if lightControl.leverAnimation.onTime == 0 then
-                            speed = 1;
-                        end;
-                        self:playAnimation(lightControl.leverAnimation.animationName, speed, nil, true);
-                        self:setAnimationStopTime(lightControl.leverAnimation.animationName, lightControl.leverAnimation.offTime);
+                        self:playAnimation(lightControl.leverAnimation.animationName, -1, self:getAnimationTime(lightControl.leverAnimation.animationName), true);
                     end;
                 end;
             end;

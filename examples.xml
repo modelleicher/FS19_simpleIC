@@ -105,4 +105,58 @@ The "rotation" axis is the Y axis (green axis)
 	</ptoControl>
 </simpleIC>
 
+## IC function lightControl
+This one is a bit more difficult to wrap your head around especially regarding the lever animations since the light Control System in FS19 is rather unintuitive. 
+I will try my best to explain my thoughts as to how I made the leverAnimations work though. 
+There are 5 different types of lightControl you can have. The 5 types are "state", "toggle", "turnLightLeft", "turnLightRight" and "turnLightHazard" each of which have their own attributes and animation-attributes.
+So I'm going to explain all 5 of them separately 
 
+:: type "state" 
+-- lightTypes -> the lightTypes this will turn on (see lightTypes in default lights section) in this example "1" is usually the rear worklight 
+-- (optional) leverAnimation -> animation to be played for a lever/button, animation is synchronized with the lightTypes for this lightControl no matter how that lightType is turned on. (key-binding, IC, toggle) 
+<lightControl type="state" lightTypes="1" >
+	<leverAnimation animationName="leverAnimation_lightControl_workLight" />
+	<insideTrigger triggerPoint="sic_lightControl_workLight" triggerPointSize="0.02" />	
+</lightControl>
+
+:: type "toggle" 
+- no additional attributes for this. Toggle does the same as "F" key, it toggles through the lightTypes 
+-- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with stuff. See below
+		-- animStopLightTypesN (replace n with number of lightType) animation will move to this animationTime if this lightType is currently on. Turns to the most significant lightTypes
+			For example to animate a turn-dial switching between different lightTypes or a key that switches different lights when turned.
+			If you don't want a lightType to influence the animation simply leave it out. For example just make animStopLightTypes2 and animStopLightTypes3 if you want that.
+			If you don't quite understand how this works just try it out and see how it behaves.
+<lightControl type="toggle" >
+	<leverAnimation animationName="leverAnimation_lightControl_toggle" animStopLightTypes0="0.2" animStopLightTypes1="0.5" />
+	<insideTrigger triggerPoint="sic_lightControl_toggle" triggerPointSize="0.02" />	
+</lightControl>
+
+:: type "turnLightLeft"
+- no additional attributes for this. Just turning on/off left turnlight 
+-- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with stuff. See below
+		-- (optional) isTurnlightSharedAnimation -> set this to true if the left and right turnlight use the same lever/button animation. 
+			Then the animation will default rest in 0.5 position, play to 0 position for right turnlight and 1 position for left turnlight.
+			If you leave this away/false then the animation will just play to 1 if turnlight is on, 0 if its off.
+<lightControl type="turnLightLeft" >
+	<leverAnimation animationName="leverAnimation_lightControl_turnLight" isTurnlightSharedAnimation="true" />
+	<insideTrigger triggerPoint="sic_lightControl_turnLeft" triggerPointSize="0.02" />	
+</lightControl>
+
+:: type "turnLightRight"  (same as left)
+- no additional attributes for this. Just turning on/off left turnlight 
+-- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with stuff. See below
+		-- (optional) isTurnlightSharedAnimation -> set this to true if the left and right turnlight use the same lever/button animation. 
+			Then the animation will default rest in 0.5 position, play to 0 position for right turnlight and 1 position for left turnlight.
+			If you leave this away/false then the animation will just play to 1 if turnlight is on, 0 if its off.
+<lightControl type="turnLightRight" >
+	<leverAnimation animationName="leverAnimation_lightControl_turnLight" isTurnlightSharedAnimation="true" />
+	<insidetrigger triggerPoint="sic_lightControl_turnRight" triggerPointSize="0.02" />	
+</lightControl>
+
+:: type "turnLightHazard" 
+- no additional attributes for this. Just turning on/off left turnlight 
+-- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with hazards. Plays to 1 if on, 0 if off. Nothing special here.
+<lightControl type="turnLightHazard" >
+	<leverAnimation animationName="leverAnimation_lightControl_hazards" />
+	<insidetrigger triggerPoint="sic_lightControl_hazard" triggerPointSize="0.02" />	
+</lightControl>

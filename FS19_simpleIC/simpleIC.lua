@@ -139,11 +139,7 @@ function simpleIC:loadICFunctions(keyOrig, loadFunc)
 		local hasFunction = false;
 		local key = keyOrig.."("..i..")"
 
-		print(key)
-	
 		hasFunction = loadFunc(self, key, icFunction);
-
-		print(hasFunction)
 
 		if hasFunction then
 			icFunction.currentState = false;

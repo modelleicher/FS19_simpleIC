@@ -2,7 +2,9 @@
  New Interactive Control Script for FS19
  
 # Changelog:
-
+###### V 0.9.3.0
+- lightControl leverAnimations for all types added and synched
+- debugPrints removed 
 ###### V 0.9.2.9
 - implementBalls synch Issue possible fix 
 - lightControl addition (leverAnimations still to do)

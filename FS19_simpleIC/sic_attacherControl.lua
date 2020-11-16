@@ -175,8 +175,6 @@ function sic_attacherControl:setAttacherControl(wantedState, i)
 	local attacherControl = self.spec_simpleIC.icFunctions[i].attacherControl;
     local spec_attacherJoints = self.spec_attacherJoints;
     
-    print(tostring(attacherControl.isImplementAttached))
-    print(tostring(spec_attacherJoints.attacherJoints[attacherControl.attacherIndex]))
 	if spec_attacherJoints.attacherJoints[attacherControl.attacherIndex] ~= nil then
 		if wantedState == nil then
 			wantedState = not spec_attacherJoints.attacherJoints[attacherControl.attacherIndex].moveDown
