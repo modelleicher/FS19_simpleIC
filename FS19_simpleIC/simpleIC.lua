@@ -77,6 +77,9 @@ function simpleIC:onLoad(savegame)
 	-- load light control
 	self:loadICFunctions("vehicle.simpleIC.lightControl", self.loadLightControl);
 
+	-- load motor start control
+	self:loadICFunctions("vehicle.simpleIC.motorStartControl", self.loadMotorStartControl);
+
 	
 	if #spec.icFunctions > 0 then
 		spec.hasIC = true;
@@ -329,6 +332,10 @@ function simpleIC:doInteraction()
 					if icFunction.lightControl ~= nil then
 						self:setLightControl(nil, i)
 					end;
+
+					if icFunction.motorStartControl ~= nil then
+						self:setMotorStartControl(nil, i)
+					end;
 				end;
 				if icFunction.canBeTriggered_ON then
 					if icFunction.animation ~= nil then
@@ -342,7 +349,10 @@ function simpleIC:doInteraction()
 					end;
 					if icFunction.lightControl ~= nil then
 						self:setLightControl(true, i)
-					end;															
+					end;	
+					if icFunction.motorStartControl ~= nil then
+						self:setMotorStartControl(true, i)
+					end;																			
 				end;			
 				if icFunction.canBeTriggered_OFF then
 					if icFunction.animation ~= nil then
@@ -356,7 +366,10 @@ function simpleIC:doInteraction()
 					end;
 					if icFunction.lightControl ~= nil then
 						self:setLightControl(false, i)
-					end;															
+					end;	
+					if icFunction.motorStartControl ~= nil then
+						self:setMotorStartControl(false, i)
+					end;																			
 				end;			
 				i = i+1;
 			end;	

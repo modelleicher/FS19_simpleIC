@@ -2,6 +2,8 @@
  New Interactive Control Script for FS19
  
 # Changelog:
+##### V 0.9.3.1
+- added motorStartControl and animations
 ###### V 0.9.3.0
 - lightControl leverAnimations for all types added and synched
 - debugPrints removed 

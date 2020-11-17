@@ -75,6 +75,25 @@ The "rotation" axis is the Y axis (green axis)
 	</cylinderAnimations>
 </simpleIC>
 
+## IC function motorStartControl:
+There is no attributes for motorStartControl itself
+-- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with motor start/stop state via other inputs. Animation will play from 0-1 if engine is started and 1-0 if engine is stopped unless isTurnKeyAnimation is true
+              -- animationName -> name of animation 
+			  -- (optional) isTurnKeyAnimation -> if this is set to true the animation will play from 0 to 1 and then back to 0.7 when motor is started. Back to 0 when motor is stopped. 
+			                                      To animate starting via key as you turn it to start position and then let go to run position.
+-- (optional) leverAnimationStart -> animation to be played when engine is started. Animation will be played from 0-1 and then back to 0.	
+              -- animationName -> name of animation 
+-- (optional) leverAnimationStop -> animation to be played when engine is stopped. Animation will be played from 0-1 and then back to 0.	
+              -- animationName -> name of animation 			
+-- triggerPoints work exactly the same as for animations (see above), so you can do triggerPoint_ON and triggerPoint_OFF for starting and stopping engine on different controls 		  
+<motorStartControl>
+	<leverAnimation animationName="leverAnimation_motorStartControl" isTurnKeyAnimation="true" />
+	<leverAnimationStart animationName="leverAnimation_motorStartControl_start" />
+	<leverAnimationStop animationName="leverAnimation_motorStartControl_stop" />
+	
+	<insidetrigger triggerPoint="sic_motorStartControl_toggle" triggerPointSize="0.02" />			
+</motorStartControl>
+
 ## IC function attacherControl:
 -- attacherIndex -> Index of Attacher in XML (same as for powerTakeoffConfigurations, hoses etc.) 
 -- (optional) leverAnimation -> animation to be played for a lever/button, animation is synchronized to lowered/raised state of attacher 

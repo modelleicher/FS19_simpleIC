@@ -1,5 +1,7 @@
 --[[
 Changelog
+##### V 0.9.3.1
+- added motorStartControl and animations
 ## V 0.9.3.0
 - lightControl leverAnimations for all types added and synched
 - debugPrints removed 
@@ -76,6 +78,7 @@ end
 
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
+	specializationManager:addSpecialization("sic_motorStartControl", "sic_motorStartControl", modDirectory.."sic_motorStartControl.lua", nil)
 	specializationManager:addSpecialization("sic_lightControl", "sic_lightControl", modDirectory.."sic_lightControl.lua", nil)		
 	specializationManager:addSpecialization("sic_attacherControl", "sic_attacherControl", modDirectory.."sic_attacherControl.lua", nil)	
 	specializationManager:addSpecialization("sic_ptoControl", "sic_ptoControl", modDirectory.."sic_ptoControl.lua", nil)
@@ -88,6 +91,7 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
 			-- add simpleIC to everything except locomotives 
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
+				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_motorStartControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_lightControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_attacherControl")				
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_ptoControl")
