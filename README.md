@@ -2,7 +2,15 @@
  New Interactive Control Script for FS19
  
 # Changelog:
-##### V 0.9.3.1
+
+###### V 0.9.3.2
+- simpleIC_implementBalls.lua:207: attempt to index field 'vehicle' fixed (at least I hope that did the trick, I assume this error comes from synch issues not actual bug in script)
+- code cleanup ptoControl
+- addition of implementControl though not fully implemented yet (thus no example in examples.xml yet)
+- addition of disableInvisibleTriggers attribute if you want to disable triggerPoints via visibility. Was on by default in previous versions since implementation.
+  But when people converted old IC to simpleIC they just set the old buttons to invisible and used the index for IC, now all of those didn't work anymore.
+  So now by default it SimpleIC doesn't care about visibilty but if you want to disable triggerPoints via visibility you can do that by adding this attribute. (see Examples XML)
+###### V 0.9.3.1
 - added motorStartControl and animations
 ###### V 0.9.3.0
 - lightControl leverAnimations for all types added and synched

@@ -204,7 +204,9 @@ function setICImplementBallsEvent:writeStream(streamId, connection)
     streamWriteUIntN(streamId, self.ballIndex, 6); 
 end;
 function setICImplementBallsEvent:run(connection) 
-    self.vehicle:setImplementBalls(self.ballIndex, self.state, true);
+    if self.vehicle ~= nil then
+        self.vehicle:setImplementBalls(self.ballIndex, self.state, true);
+    end;
     if not connection:getIsServer() then  
         g_server:broadcastEvent(setICImplementBallsEvent:new(self.vehicle, self.state, self.ballIndex), nil, connection, self.object);
     end;

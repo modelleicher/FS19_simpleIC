@@ -1,5 +1,12 @@
 --[[
 Changelog
+##### V 0.9.3.2
+- simpleIC_implementBalls.lua:207: attempt to index field 'vehicle' fixed (at least I hope that did the trick, I assume this error comes from synch issues not actual bug in script)
+- code cleanup ptoControl
+- addition of implementControl though not fully implemented yet (thus no example in examples.xml yet)
+- addition of disableInvisibleTriggers attribute if you want to disable triggerPoints via visibility. Was on by default in previous versions since implementation.
+  But when people converted old IC to simpleIC they just set the old buttons to invisible and used the index for IC, now all of those didn't work anymore.
+  So now by default it SimpleIC doesn't care about visibilty but if you want to disable triggerPoints via visibility you can do that by adding this attribute. (see Examples XML)
 ##### V 0.9.3.1
 - added motorStartControl and animations
 ## V 0.9.3.0
@@ -78,6 +85,7 @@ end
 
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
+	specializationManager:addSpecialization("sic_implementControl", "sic_implementControl", modDirectory.."sic_implementControl.lua", nil)
 	specializationManager:addSpecialization("sic_motorStartControl", "sic_motorStartControl", modDirectory.."sic_motorStartControl.lua", nil)
 	specializationManager:addSpecialization("sic_lightControl", "sic_lightControl", modDirectory.."sic_lightControl.lua", nil)		
 	specializationManager:addSpecialization("sic_attacherControl", "sic_attacherControl", modDirectory.."sic_attacherControl.lua", nil)	
@@ -91,6 +99,7 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
 			-- add simpleIC to everything except locomotives 
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
+				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_implementControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_motorStartControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_lightControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_attacherControl")				

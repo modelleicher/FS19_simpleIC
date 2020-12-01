@@ -75,6 +75,14 @@ The "rotation" axis is the Y axis (green axis)
 	</cylinderAnimations>
 </simpleIC>
 
+## Enabling triggerPoints being disabled when triggerPoint transform-group is invisible
+-- disableInvisibleTriggers -> set to true will enable this feature. Default is off to keep backwards-compatible with older mods
+<simpleIC disableInvisibleTriggers="true" >
+	[...]
+</simpleIC>
+
+
+
 ## IC function motorStartControl:
 There is no attributes for motorStartControl itself
 -- (optional) leverAnimation -> animation to be played for a lever/button. Animation is synchronized with motor start/stop state via other inputs. Animation will play from 0-1 if engine is started and 1-0 if engine is stopped unless isTurnKeyAnimation is true

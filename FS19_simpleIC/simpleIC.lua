@@ -80,9 +80,14 @@ function simpleIC:onLoad(savegame)
 	-- load motor start control
 	self:loadICFunctions("vehicle.simpleIC.motorStartControl", self.loadMotorStartControl);
 
+	-- load implement control
+	self:loadICFunctions("vehicle.simpleIC.implementControl", self.loadImplementControl);
+
 	
 	if #spec.icFunctions > 0 then
 		spec.hasIC = true;
+
+		spec.disableInvisibleTriggers = Utils.getNoNil(getXMLBool(self.xmlFile, "vehicle.simpleIC#disableInvisibleTriggers"), false);
 
 		spec.outsideInteractionTrigger = I3DUtil.indexToObject(self.components, getXMLString(self.xmlFile, "vehicle.simpleIC#outsideInteractionTrigger"), self.i3dMappings);
 		
@@ -336,6 +341,10 @@ function simpleIC:doInteraction()
 					if icFunction.motorStartControl ~= nil then
 						self:setMotorStartControl(nil, i)
 					end;
+
+					if icFunction.implementControl ~= nil then
+						self:setImplementControl(nil, i)
+					end;					
 				end;
 				if icFunction.canBeTriggered_ON then
 					if icFunction.animation ~= nil then
@@ -352,7 +361,10 @@ function simpleIC:doInteraction()
 					end;	
 					if icFunction.motorStartControl ~= nil then
 						self:setMotorStartControl(true, i)
-					end;																			
+					end;	
+					if icFunction.implementControl ~= nil then
+						self:setImplementControl(true, i)
+					end;																								
 				end;			
 				if icFunction.canBeTriggered_OFF then
 					if icFunction.animation ~= nil then
@@ -369,7 +381,10 @@ function simpleIC:doInteraction()
 					end;	
 					if icFunction.motorStartControl ~= nil then
 						self:setMotorStartControl(false, i)
-					end;																			
+					end;
+					if icFunction.implementControl ~= nil then
+						self:setImplementControl(false, i)
+					end;																									
 				end;			
 				i = i+1;
 			end;	
@@ -661,7 +676,7 @@ function simpleIC:checkInteraction()
 					for index , triggerPoint in pairs(triggerPoint) do 
 
 						-- get visibility of our trigger-point, if it is invisible its deactivated 
-						if getVisibility(triggerPoint) then
+						if not spec.disableInvisibleTriggers or (getVisibility(triggerPoint) and spec.disableInvisibleTriggers)  then
 
 							-- get world translation of our trigger point, then project it to the screen 
 							local wX, wY, wZ = getWorldTranslation(triggerPoint);
