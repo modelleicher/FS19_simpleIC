@@ -34,10 +34,10 @@ function sic_drivableControl:onPostLoad(savegame)
     local spec = self.spec_sic_drivableControl;
 
     spec.tsx_enhancedVehicleLoaded = g_modIsLoaded.TSX_EnhancedVehicle;
-    spec.tsx_enhancedVehicle_diffEnabled = TSX_EnhancedVehicle.TSX_EnhancedVehicle.functionDifferentialIsEnabled;
-    spec.tsx_enhancedVehicle_shuttleEnabled = TSX_EnhancedVehicle.TSX_EnhancedVehicle.functionShuttleIsEnabled;
-
-    if spec.tsx_enhancedVehicleLoaded then
+	if spec.tsx_enhancedVehicleLoaded then
+		spec.tsx_enhancedVehicle_diffEnabled = TSX_EnhancedVehicle.TSX_EnhancedVehicle.functionDifferentialIsEnabled;
+		spec.tsx_enhancedVehicle_shuttleEnabled = TSX_EnhancedVehicle.TSX_EnhancedVehicle.functionShuttleIsEnabled;
+		
         spec.vDataBackup = {nil, nil, nil, nil, nil, nil};
     end;
 end;
@@ -71,8 +71,9 @@ function sic_drivableControl.tsx_onRegisterActionEventsAppend(self, superFunc, i
 
     self.onActionCall = TSX_EnhancedVehicle.TSX_EnhancedVehicle.onActionCall;
 end;
-TSX_EnhancedVehicle.TSX_EnhancedVehicle.onRegisterActionEvents = Utils.overwrittenFunction(TSX_EnhancedVehicle.TSX_EnhancedVehicle.onRegisterActionEvents, sic_drivableControl.tsx_onRegisterActionEventsAppend);
-
+if TSX_EnhancedVehicle ~= nil and TSX_EnhancedVehicle.TSX_EnhancedVehicle ~= nil then
+	TSX_EnhancedVehicle.TSX_EnhancedVehicle.onRegisterActionEvents = Utils.overwrittenFunction(TSX_EnhancedVehicle.TSX_EnhancedVehicle.onRegisterActionEvents, sic_drivableControl.tsx_onRegisterActionEventsAppend);
+end;
 
 function sic_drivableControl:onUpdate(dt)
     if self:getIsActive() then

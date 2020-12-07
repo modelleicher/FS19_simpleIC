@@ -1,5 +1,7 @@
 --[[
 Changelog
+##### V 0.9.3.4
+- Hotfix game not loading without EnhancedVehicle active 
 ##### V 0.9.3.3 
 - implementControl leverAnimation fix, addition of returnToCenter, returnToCenterLowered, returnToCenterRaised
 - fixed ptoControl for mods using attacherIndex instead of attacherIndices (pre 0.9.3.2 mods)
