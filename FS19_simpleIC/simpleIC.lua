@@ -83,6 +83,8 @@ function simpleIC:onLoad(savegame)
 	-- load implement control
 	self:loadICFunctions("vehicle.simpleIC.implementControl", self.loadImplementControl);
 
+	-- load drivable control
+	self:loadICFunctions("vehicle.simpleIC.drivableControl", self.loadDrivableControl);
 	
 	if #spec.icFunctions > 0 then
 		spec.hasIC = true;
@@ -344,7 +346,10 @@ function simpleIC:doInteraction()
 
 					if icFunction.implementControl ~= nil then
 						self:setImplementControl(nil, i)
-					end;					
+					end;	
+					if icFunction.drivableControl ~= nil then
+						self:setDrivableControl(nil, i)
+					end;										
 				end;
 				if icFunction.canBeTriggered_ON then
 					if icFunction.animation ~= nil then
@@ -364,7 +369,10 @@ function simpleIC:doInteraction()
 					end;	
 					if icFunction.implementControl ~= nil then
 						self:setImplementControl(true, i)
-					end;																								
+					end;	
+					if icFunction.drivableControl ~= nil then
+						self:setDrivableControl(true, i)
+					end;																													
 				end;			
 				if icFunction.canBeTriggered_OFF then
 					if icFunction.animation ~= nil then
@@ -384,7 +392,10 @@ function simpleIC:doInteraction()
 					end;
 					if icFunction.implementControl ~= nil then
 						self:setImplementControl(false, i)
-					end;																									
+					end;	
+					if icFunction.drivableControl ~= nil then
+						self:setDrivableControl(false, i)
+					end;																													
 				end;			
 				i = i+1;
 			end;	

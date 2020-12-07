@@ -99,11 +99,12 @@ There is no attributes for motorStartControl itself
 	<leverAnimationStart animationName="leverAnimation_motorStartControl_start" />
 	<leverAnimationStop animationName="leverAnimation_motorStartControl_stop" />
 	
-	<insidetrigger triggerPoint="sic_motorStartControl_toggle" triggerPointSize="0.02" />			
+	<insideTrigger triggerPoint="sic_motorStartControl_toggle" triggerPointSize="0.02" />			
 </motorStartControl>
 
 ## IC function attacherControl:
--- attacherIndex -> Index of Attacher in XML (same as for powerTakeoffConfigurations, hoses etc.) 
+-- attacherIndices ->  Indices of Attacher in XML (same as for powerTakeoffConfigurations, hoses etc.) you can add multiple attacherIndices because you have one pto for multiple attachers (implement, trailer, low..)
+-- (attacherIndex -> depreceated, don't use anymore. Use attacherIndices instead. It still works to be backwards-compatible but better to use attacherIndices) 
 -- (optional) leverAnimation -> animation to be played for a lever/button, animation is synchronized to lowered/raised state of attacher 
 			-- animationName -> name of animation for leverAnimation
 			-- (optional) doNotSynch -> don't synch lever animation to inputs with key-binding instead of simpleIC. Not sure why you'd want that but its there if you need it 

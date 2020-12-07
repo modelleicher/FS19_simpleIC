@@ -1,5 +1,9 @@
 --[[
 Changelog
+##### V 0.9.3.3 
+- implementControl leverAnimation fix, addition of returnToCenter, returnToCenterLowered, returnToCenterRaised
+- fixed ptoControl for mods using attacherIndex instead of attacherIndices (pre 0.9.3.2 mods)
+- drivableControl initial implementation (not done yet)
 ##### V 0.9.3.2
 - simpleIC_implementBalls.lua:207: attempt to index field 'vehicle' fixed (at least I hope that did the trick, I assume this error comes from synch issues not actual bug in script)
 - code cleanup ptoControl
@@ -85,6 +89,7 @@ end
 
 
 function registerSimpleIC.installSpecializations(vehicleTypeManager, specializationManager, modDirectory, modName)
+	specializationManager:addSpecialization("sic_drivableControl", "sic_drivableControl", modDirectory.."sic_drivableControl.lua", nil)
 	specializationManager:addSpecialization("sic_implementControl", "sic_implementControl", modDirectory.."sic_implementControl.lua", nil)
 	specializationManager:addSpecialization("sic_motorStartControl", "sic_motorStartControl", modDirectory.."sic_motorStartControl.lua", nil)
 	specializationManager:addSpecialization("sic_lightControl", "sic_lightControl", modDirectory.."sic_lightControl.lua", nil)		
@@ -99,6 +104,7 @@ function registerSimpleIC.installSpecializations(vehicleTypeManager, specializat
 		if typeName ~= "horse" and typeName ~= "pallet" then -- ignore pallets and horse 
 			-- add simpleIC to everything except locomotives 
 			if not SpecializationUtil.hasSpecialization(Locomotive, typeEntry.specializations) then
+				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_drivableControl")	
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_implementControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_motorStartControl")					
 				vehicleTypeManager:addSpecialization(typeName, modName .. ".sic_lightControl")					

@@ -40,7 +40,7 @@ function sic_ptoControl:loadPTOControl(key, table)
                 self.sic_at.attacherIndex_ptoControl[tonumber(attacherIndex)] = ptoControl;
             end;
         else
-            ptoControl.attacherIndices = {attacherIndex};
+            ptoControl.attacherIndices = {tostring(attacherIndex)};
             self.sic_at.attacherIndex_ptoControl[attacherIndex] = ptoControl;
         end;
 
@@ -54,7 +54,7 @@ function sic_ptoControl:loadPTOControl(key, table)
         
         -- add table and access table
         table.ptoControl = ptoControl;
-        self.sic_at.ptoControl[#self.sic_at.ptoControl] = ptoControl;
+        self.sic_at.ptoControl[#self.sic_at.ptoControl+1] = ptoControl;
 		return true;
 	end;
 end;
@@ -97,6 +97,7 @@ function sic_ptoControl:setPTOControl(wantedState, i)
     end;
 
 end;
+
 
 
 -- override setIsTurnedOn for playing animation when turned on/off even if it isn't done via SIC Input
