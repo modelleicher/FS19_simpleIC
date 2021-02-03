@@ -189,7 +189,7 @@ end;
 
 
 function simpleIC:loadAnimation(key, table)
-	print("SimpleIC:loadAnimation")
+
 	local anim = {};
 	anim.animationName = getXMLString(self.xmlFile, key.."#animationName");
 	if anim.animationName ~= "" and anim.animationName ~= nil then
