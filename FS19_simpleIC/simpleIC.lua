@@ -54,7 +54,7 @@ function simpleIC:onLoad(savegame)
 	self.resetCanBeTriggered = simpleIC.resetCanBeTriggered;
 	self.doInteraction = simpleIC.doInteraction;
 	self.isCameraInsideCheck = simpleIC.isCameraInsideCheck;
-	self.loadAnimation = simpleIC.loadAnimation;	
+	self.loadICAnimation = simpleIC.loadAnimation;	
 	self.loadICFunctions = simpleIC.loadICFunctions;
 
 
@@ -66,7 +66,7 @@ function simpleIC:onLoad(savegame)
 	spec.icFunctions = {};
 	
 	-- load the animations from XML 
-	self:loadICFunctions("vehicle.simpleIC.animation", self.loadAnimation);
+	self:loadICFunctions("vehicle.simpleIC.animation", self.loadICAnimation);
 
 	-- load attacherControl 
 	self:loadICFunctions("vehicle.simpleIC.attacherControl", self.loadAttacherControl);
